@@ -1,0 +1,23 @@
+server:
+  port: 8080
+  servlet:
+      context-path: /
+      forward-headers-strategy: framework
+
+
+spring:
+    data:
+        mongodb:
+            uri: mongodb://root:example@localhost:27017/task_management
+            database: task_management
+
+springdoc:
+    swagger-ui:
+        tagsSorter: alpha
+        operations-sorter: method
+
+swagger:
+    info:
+        title: "task_management"
+        description: "Backend сервис task_management"
+
