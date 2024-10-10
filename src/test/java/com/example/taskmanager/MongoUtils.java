@@ -35,7 +35,6 @@ public class MongoUtils {
     public static User.UserBuilder<?, ?> prepareUser() {
         return User.builder()
             .id("testUserId")
-            .username("Test User")
             .email("testuser@example.com");
     }
 }
