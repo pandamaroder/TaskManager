@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -20,8 +21,6 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class TaskController {
     private final TaskService taskService;
-
-
 
     @GetMapping
     public Flux<TaskDTO> getAllTasks() {
@@ -36,8 +35,10 @@ public class TaskController {
     }
 
     @PostMapping
-    public Mono<TaskDTO> createTask(@RequestBody TaskDTO taskDTO) {
-        return taskService.createTask(taskDTO);
+    //@RequestParam Когда нужно передать параметры, связанные с фильтрацией, сортировкой,
+    // пагинацией или другими опциональными данными, которые не идентифицируют ресурс.
+    public Mono<TaskDTO> createTask(@RequestBody TaskDTO taskDTO, @RequestParam String authorId) {
+        return taskService.createTask(taskDTO, authorId);
     }
 
     @PutMapping("/{id}")

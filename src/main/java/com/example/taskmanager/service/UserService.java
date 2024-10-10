@@ -27,12 +27,11 @@ public class UserService {
     }
 
     public Mono<User> updateUser(String id, User user) {
-        return userRepository.findById(id)
-            .flatMap(existingUser -> {
-                existingUser.setUsername(user.getUsername());
-                existingUser.setEmail(user.getEmail());
-                return userRepository.save(existingUser);
-            });
+        return userRepository.findById(id).flatMap(existingUser -> {
+            existingUser.setUsername(user.getUsername());
+            existingUser.setEmail(user.getEmail());
+            return userRepository.save(existingUser);
+        });
     }
 
     public Mono<Void> deleteUserById(String id) {

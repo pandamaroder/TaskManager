@@ -1,4 +1,4 @@
-import net.ltgt.gradle.errorprone.errorprone
+
 
 plugins {
     id("java")
@@ -25,45 +25,45 @@ repositories {
 dependencies {
     // Реактивные Spring зависимости
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    //предназначен для работы с MongoDB в реактивном стиле.
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+    //предоставляет поддержку для работы с MongoDB в синхронном (императивном) стиле.
+     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
-    // Драйвер MongoDB для реактивного взаимодействия
-    implementation("org.mongodb:mongodb-driver-reactivestreams:4.9.1")
+
+    implementation("org.mongodb:mongodb-driver-reactivestreams:4.11.2")
+    implementation("org.mongodb:mongodb-driver-core:4.11.2")
 
     // OpenAPI для WebFlux
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2")
-
-    // Валидация
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // Lombok
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    // Маппинг с помощью MapStruct
     implementation("org.mapstruct:mapstruct:1.5.5.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
-
-    // Для работы с датами и временем
     implementation("org.threeten:threeten-extra:1.6.0")
-
-    // Тестирование
+    errorprone("com.google.errorprone:error_prone_core:2.27.1")
+    checkstyle("com.thomasjensen.checkstyle.addons:checkstyle-addons:7.0.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.awaitility:awaitility")
     testImplementation("org.testcontainers:testcontainers:1.18.0")
     testImplementation("org.testcontainers:junit-jupiter:1.18.0")
     testImplementation("org.testcontainers:mongodb:1.18.0")
-}
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
 
-tasks.withType<JavaCompile>().configureEach {
-    options.errorprone {
-        disableWarningsInGeneratedCode.set(true)
-    }
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 tasks {
     test {
+        dependsOn(checkstyleTest, checkstyleMain, pmdMain, pmdTest)
+        testLogging.showStandardStreams = false // set to true for debug purposes
         useJUnitPlatform()
         finalizedBy(jacocoTestReport, jacocoTestCoverageVerification)
     }
@@ -79,19 +79,6 @@ tasks {
     jacocoTestCoverageVerification {
         dependsOn(jacocoTestReport)
     }
-}
-
-pmd {
-    toolVersion = "6.55.0"
-    ruleSets = listOf()
-    ruleSetFiles = files("config/pmd/pmd.xml")
-}
-
-
-checkstyle {
-    toolVersion = "10.16.0"
-    configFile = file("config/checkstyle/checkstyle.xml")
-    isIgnoreFailures = false
 }
 
 jacoco {
