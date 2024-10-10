@@ -1,7 +1,6 @@
 package com.example.taskmanager.service;
 
 import com.example.taskmanager.dto.TaskDTO;
-import com.example.taskmanager.dto.UserDTO;
 import com.example.taskmanager.mappers.TaskMapper;
 import com.example.taskmanager.mappers.UserMapper;
 import com.example.taskmanager.model.Task;
@@ -15,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,8 +25,6 @@ public class TaskService {
     private final UserService userService;
     private final TaskMapper taskMapper;
     private final UserMapper userMapper;
-
-
 
     public Flux<TaskDTO> getAllTasks() {
         return taskRepository.findAll()
@@ -40,11 +37,25 @@ public class TaskService {
     }
 
     public Mono<TaskDTO> createTask(TaskDTO taskDTO) {
+        // Преобразуем DTO в сущность
         Task task = taskMapper.toEntity(taskDTO);
-        task.setCreatedAt(Instant.now());
-        task.setUpdatedAt(Instant.now());
-        return taskRepository.save(task)
-            .flatMap(this::mapTaskWithRelations);
+
+        // Задаем значения для final полей
+        Task newTask = new Task(
+            UUID.randomUUID().toString(),
+            task.getName(),
+            task.getDescription(),
+            Instant.now(),
+            Instant.now(),
+            task.getStatus(),
+            task.getAuthorId(),
+            task.getAssigneeId(),
+            task.getObserverIds()
+        );
+
+        // Сохраняем задачу в репозитории и возвращаем DTO
+        return taskRepository.save(newTask)
+            .flatMap(this::mapTaskWithRelations);  // метод для обработки связей
     }
 
 
@@ -73,8 +84,8 @@ public class TaskService {
 
         // Получаем Flux для наблюдателей
         Flux<User> observersFlux = Flux.fromIterable(task.getObserverIds())
-            .flatMap(userService::findUserById); // Используем flatMap для получения пользователей
-
+            .flatMap(userService::findUserById);
+        //Tuple2
         // Объединяем все результаты
         return Mono.zip(authorMono, assigneeMono, observersFlux.collectList())
             .map(tuple -> {

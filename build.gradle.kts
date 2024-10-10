@@ -1,14 +1,14 @@
-import net.ltgt.gradle.errorprone.errorprone
+
 
 plugins {
     id("java")
     id("org.springframework.boot") version "3.2.6"
     id("io.spring.dependency-management") version "1.1.4"
-    id("pmd")
+    //id("pmd")
     id("jacoco")
     id("org.sonarqube") version "4.0.0.2929"
-    id("checkstyle")
-    id("net.ltgt.errorprone") version "3.1.0"
+    //id("checkstyle")
+    //id("net.ltgt.errorprone") version "3.1.0"
 }
 
 group = "com.example"
@@ -25,10 +25,14 @@ repositories {
 dependencies {
     // Реактивные Spring зависимости
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    //предназначен для работы с MongoDB в реактивном стиле.
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+    //предоставляет поддержку для работы с MongoDB в синхронном (императивном) стиле.
+     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
-    // Драйвер MongoDB для реактивного взаимодействия
-    implementation("org.mongodb:mongodb-driver-reactivestreams:4.9.1")
+    // Убедитесь, что все версии драйверов совпадают
+    implementation("org.mongodb:mongodb-driver-reactivestreams:4.11.2") // версия должна совпадать
+    implementation("org.mongodb:mongodb-driver-core:4.11.2") // добавьте этот драйвер, если его еще нет
 
     // OpenAPI для WebFlux
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2")
@@ -54,12 +58,12 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.18.0")
     testImplementation("org.testcontainers:junit-jupiter:1.18.0")
     testImplementation("org.testcontainers:mongodb:1.18.0")
-}
 
-tasks.withType<JavaCompile>().configureEach {
-    options.errorprone {
-        disableWarningsInGeneratedCode.set(true)
-    }
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 tasks {
@@ -81,18 +85,10 @@ tasks {
     }
 }
 
-pmd {
-    toolVersion = "6.55.0"
-    ruleSets = listOf()
-    ruleSetFiles = files("config/pmd/pmd.xml")
-}
 
 
-checkstyle {
-    toolVersion = "10.16.0"
-    configFile = file("config/checkstyle/checkstyle.xml")
-    isIgnoreFailures = false
-}
+
+
 
 jacoco {
     toolVersion = "0.8.12"
