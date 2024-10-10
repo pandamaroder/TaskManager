@@ -1,5 +1,6 @@
-package com.example.taskmanager;
+package com.example.taskmanager.repository;
 
+import com.example.taskmanager.MongoInitializer;
 import com.example.taskmanager.model.User;
 import com.example.taskmanager.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
