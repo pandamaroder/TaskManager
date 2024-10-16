@@ -18,8 +18,6 @@ import static com.example.taskmanager.MongoUtils.prepareTask;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataMongoTest
-@ContextConfiguration(initializers = MongoInitializer.class) // Добавляем инициализатор
-
 public class TaskRepositoryTest {
 
     @Autowired
