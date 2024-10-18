@@ -58,7 +58,6 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.18.0")
     testImplementation("org.testcontainers:junit-jupiter:1.18.0")
     testImplementation("org.testcontainers:mongodb:1.18.0")
-
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 

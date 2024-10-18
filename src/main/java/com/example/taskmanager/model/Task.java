@@ -2,6 +2,7 @@ package com.example.taskmanager.model;
 
 import com.example.taskmanager.TaskStatus;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import nonapi.io.github.classgraph.json.Id;
 import org.springframework.data.annotation.ReadOnlyProperty;
@@ -13,7 +14,10 @@ import java.util.Set;
 @Getter
 @SuperBuilder
 @Document(collection = "tasks")
+
 public class Task {
+    public Task() {
+    }
 
     public Task(String id, String name, String description, Instant createdAt, Instant updatedAt, TaskStatus status, String authorId, String assigneeId, Set<String> observerIds) {
         this.id = id;
@@ -30,8 +34,8 @@ public class Task {
     private String id;
     private String name;
     private String description;
-    private final Instant createdAt; // при создании объекта через конструктор
-    private final Instant updatedAt;
+    Instant createdAt; // при создании объекта через конструктор
+    Instant updatedAt;
     private TaskStatus status;
     private String authorId;
     private String assigneeId;

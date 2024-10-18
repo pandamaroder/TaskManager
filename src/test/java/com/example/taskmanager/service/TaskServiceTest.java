@@ -1,27 +1,22 @@
 package com.example.taskmanager.service;
 
 import com.example.taskmanager.BaseTest;
-import com.example.taskmanager.MongoInitializer;
 import com.example.taskmanager.dto.TaskDTO;
 import com.example.taskmanager.model.Task;
 import com.example.taskmanager.model.User;
 import com.example.taskmanager.repository.TaskRepository;
 import com.example.taskmanager.repository.UserRepository;
-import com.example.taskmanager.service.TaskService;
 import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static com.example.taskmanager.MongoUtils.getEntriesCount;
-import static com.example.taskmanager.MongoUtils.prepareTask;
-import static com.example.taskmanager.MongoUtils.prepareUser;
+import static com.example.taskmanager.TestUtils.getEntriesCount;
+import static com.example.taskmanager.TestUtils.prepareTask;
+import static com.example.taskmanager.TestUtils.prepareUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -38,15 +33,7 @@ public class TaskServiceTest extends BaseTest {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @BeforeEach
-    public void setup() {
-        // Очищаем коллекцию перед каждым тестом
-        mongoTemplate.dropCollection("tasks");
-    }
-
-
     @Test
-    @Ignore
     public void testUpdateTask() {
         // Создаем и сохраняем пользователя
         User user = prepareUser().build();
@@ -86,6 +73,32 @@ public class TaskServiceTest extends BaseTest {
                 assertThat(updatedTaskFromDB.getDescription()).isEqualTo("Updated description");
             })
             .verifyComplete();
+    }
+
+    @Test
+    public void testCreateTask() {
+        User user = prepareUser()
+            .username("Test Author")
+            .build();
+        userRepository.save(user).block();
+
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setName("Test Task");
+        taskDTO.setDescription("This is a test task.");
+
+        final String userId = user.getId();
+        Mono<TaskDTO> createdTaskMono = taskService.createTask(taskDTO, userId);
+
+        StepVerifier.create(createdTaskMono)
+            .assertNext(createdTask -> {
+                assertThat(createdTask.getName()).isEqualTo("Test Task");
+                assertThat(createdTask.getDescription()).isEqualTo("This is a test task.");
+                assertThat(createdTask.getAuthorId()).isEqualTo(userId);
+            })
+            .verifyComplete();
+
+        long count = getEntriesCount(mongoTemplate, "tasks");
+        assertThat(count).isEqualTo(1);
     }
 
 }

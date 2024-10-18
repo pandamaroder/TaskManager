@@ -19,6 +19,7 @@ public class BaseTest {
     public void setup() {
         // Очищаем коллекцию перед каждым тестом
         mongoTemplate.dropCollection("tasks");
+        mongoTemplate.dropCollection("users");
     }
 
 

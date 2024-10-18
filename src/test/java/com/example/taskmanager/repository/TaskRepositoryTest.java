@@ -1,24 +1,21 @@
 package com.example.taskmanager.repository;
 
-import com.example.taskmanager.MongoInitializer;
+import com.example.taskmanager.BaseTest;
 import com.example.taskmanager.model.Task;
-import com.example.taskmanager.repository.TaskRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.test.context.ContextConfiguration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static com.example.taskmanager.MongoUtils.getEntriesCount;
-import static com.example.taskmanager.MongoUtils.prepareTask;
+import static com.example.taskmanager.TestUtils.getEntriesCount;
+import static com.example.taskmanager.TestUtils.prepareTask;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataMongoTest
-public class TaskRepositoryTest {
+
+public class TaskRepositoryTest extends BaseTest {
 
     @Autowired
     private TaskRepository taskRepository;

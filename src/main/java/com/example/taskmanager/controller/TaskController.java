@@ -37,6 +37,8 @@ public class TaskController {
     }
 
     @PostMapping
+    //Когда нужно передать параметры, связанные с фильтрацией, сортировкой,
+    // пагинацией или другими опциональными данными, которые не идентифицируют ресурс.
     public Mono<TaskDTO> createTask(@RequestBody TaskDTO taskDTO, @RequestParam String authorId) {
         return taskService.createTask(taskDTO, authorId);
     }

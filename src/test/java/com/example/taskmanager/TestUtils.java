@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.HashSet;
 
 @UtilityClass
-public class MongoUtils {
+public class TestUtils {
 
     public static long getEntriesCount(final MongoTemplate mongoTemplate, final String collectionName) {
         MongoCollection<Document> collection = mongoTemplate.getCollection(collectionName);

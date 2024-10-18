@@ -45,12 +45,12 @@ public class TaskService {
             .map(author -> buildTaskFromDTO(taskDTO, authorId))
             // Сохранение задачи
             .flatMap(taskRepository::save)
-            // Преобразование сохраненной задачи в DTO
+            // Преобразование обратено в DTO
             .map(savedTask -> mapToDTO(savedTask, authorId))
             //Этот метод используется для обработки пустых значений в Mono или Flux.
             //Mono<User> userMono = userRepository.findById(userId)
             //.switchIfEmpty(Mono.error(new UserNotFoundException("User not found")));
-            .switchIfEmpty(Mono.error(new UserNotFoundException("User not found")));
+            .switchIfEmpty(Mono.error(new UserNotFoundException("User not found, you cant create task")));
     }
 
 
@@ -133,10 +133,8 @@ public class TaskService {
         taskDTO.setDescription(task.getDescription());
         taskDTO.setCreatedAt(task.getCreatedAt());
         taskDTO.setUpdatedAt(task.getUpdatedAt());
-        taskDTO.setAuthorId(authorId); // или task.getAuthorId(), если нужно
+        taskDTO.setAuthorId(authorId); // или task.getAuthorId()
         taskDTO.setStatus(task.getStatus());
-        // Здесь можно добавить и другие необходимые поля
-
         return taskDTO;
     }
 
