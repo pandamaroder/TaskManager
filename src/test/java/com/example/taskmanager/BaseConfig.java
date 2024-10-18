@@ -10,7 +10,7 @@ import org.springframework.test.context.ContextConfiguration;
 @SpringBootTest
 @ActiveProfiles("test")
 @ContextConfiguration(initializers = MongoInitializer.class)
-public class BaseTest {
+public class BaseConfig {
 
     @Autowired
     private MongoTemplate mongoTemplate;

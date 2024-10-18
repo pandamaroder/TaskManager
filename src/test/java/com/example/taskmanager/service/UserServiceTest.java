@@ -18,7 +18,7 @@ import static com.example.taskmanager.DataModelUtils.prepareUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class TaskServiceTest extends BaseConfig {
+public class UserServiceTest extends BaseConfig {
 
     @Autowired
     private TaskRepository taskRepository;

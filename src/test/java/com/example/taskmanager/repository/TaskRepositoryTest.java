@@ -1,6 +1,6 @@
 package com.example.taskmanager.repository;
 
-import com.example.taskmanager.BaseTest;
+import com.example.taskmanager.BaseConfig;
 import com.example.taskmanager.model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,12 +10,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static com.example.taskmanager.TestUtils.getEntriesCount;
-import static com.example.taskmanager.TestUtils.prepareTask;
+import static com.example.taskmanager.DataModelUtils.getEntriesCount;
+import static com.example.taskmanager.DataModelUtils.prepareTask;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class TaskRepositoryTest extends BaseTest {
+public class TaskRepositoryTest extends BaseConfig {
 
     @Autowired
     private TaskRepository taskRepository;
