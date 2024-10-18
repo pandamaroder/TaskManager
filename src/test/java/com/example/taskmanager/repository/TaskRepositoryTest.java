@@ -1,8 +1,7 @@
 package com.example.taskmanager.repository;
 
-import com.example.taskmanager.BaseConfig;
+import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.model.Task;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -15,7 +14,7 @@ import static com.example.taskmanager.DataModelUtils.prepareTask;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class TaskRepositoryTest extends BaseConfig {
+public class TaskRepositoryTest extends BaseTestConfig {
 
     @Autowired
     private TaskRepository taskRepository;
@@ -24,29 +23,24 @@ public class TaskRepositoryTest extends BaseConfig {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @BeforeEach
-    public void setup() {
-        mongoTemplate.dropCollection("tasks");
-    }
-
     @Test
     public void testGetAllTasks() {
-        long count1 = getEntriesCount(mongoTemplate, "tasks");
+        final long count1 = getEntriesCount(mongoTemplate, TASKS);
         assertThat(count1)
             .isZero();
-        Task task1 = prepareTask().name("Task 1").build();
-        Task task2 = prepareTask().name("Task 2").build();
+        final Task task1 = prepareTask().name("Test 1").build();
+        final Task task2 = prepareTask().name("Test 2").build();
 
         taskRepository.save(task1).block();
         taskRepository.save(task2).block();
         Flux<Task> tasks = taskRepository.findAll();
 
         StepVerifier.create(tasks)
-            .expectNextMatches(task -> task.getName().equals("Task 1"))
-            .expectNextMatches(task -> task.getName().equals("Task 2"))
+            .expectNextMatches(task -> task.getName().equals("Test 1"))
+            .expectNextMatches(task -> task.getName().equals("Test 2"))
             .verifyComplete();
         // Валидация количества записей в коллекции
-        long count = getEntriesCount(mongoTemplate, "tasks");
+        final long count = getEntriesCount(mongoTemplate, TASKS);
         assertThat(count)
             .isNotZero()
             .isPositive();
@@ -57,21 +51,19 @@ public class TaskRepositoryTest extends BaseConfig {
 
     @Test
     public void testDeleteTask() {
-        // Сначала создаем задачу
-        Task task = prepareTask().name("Task to delete").build();
+
+        final Task task = prepareTask().name("to delete").build();
         taskRepository.save(task).block();
-        long countBefore = getEntriesCount(mongoTemplate, "tasks");
+        final long countBefore = getEntriesCount(mongoTemplate, TASKS);
         assertThat(countBefore)
             .isNotZero()
             .isEqualTo(1);
-        // Удаляем задачу
         Mono<Void> deletedTask = taskRepository.deleteById(task.getId());
 
         StepVerifier.create(deletedTask)
             .verifyComplete();
 
-        // Проверяем, что в коллекции больше нет записей
-        long count = getEntriesCount(mongoTemplate, "tasks");
+        final long count = getEntriesCount(mongoTemplate, TASKS);
         assertThat(count)
             .isZero();
     }
@@ -79,21 +71,20 @@ public class TaskRepositoryTest extends BaseConfig {
     @Test
     public void testFindById() {
         // Сначала создаем и сохраняем задачу
-        Task task = prepareTask().name("Task to find").build();
+        final Task task = prepareTask().name("to find").build();
         taskRepository.save(task).block(); //
-        long countBefore = getEntriesCount(mongoTemplate, "tasks");
+        final long countBefore = getEntriesCount(mongoTemplate, TASKS);
         assertThat(countBefore)
             .isNotZero()
             .isEqualTo(1);
-        // Пытаемся найти задачу по ее ID
+
         Mono<Task> foundTask = taskRepository.findById(task.getId());
 
-        // Проверяем, что задача найдена и ее свойства совпадают
         StepVerifier.create(foundTask)
             .assertNext(taskFound -> {
                 assertThat(taskFound.getId()).isEqualTo(task.getId());
             });
-        long countAfter = getEntriesCount(mongoTemplate, "tasks");
+        final long countAfter = getEntriesCount(mongoTemplate, TASKS);
         assertThat(countBefore)
             .isNotZero()
             .isEqualTo(countAfter);

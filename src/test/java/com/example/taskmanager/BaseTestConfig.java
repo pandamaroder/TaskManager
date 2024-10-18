@@ -10,16 +10,19 @@ import org.springframework.test.context.ContextConfiguration;
 @SpringBootTest
 @ActiveProfiles("test")
 @ContextConfiguration(initializers = MongoInitializer.class)
-public class BaseConfig {
+public class BaseTestConfig {
 
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    public static String TASKS = "tasks";
+
+    public static String USERS = "users";
+
     @BeforeEach
     public void setup() {
-        // Очищаем коллекцию перед каждым тестом
-        mongoTemplate.dropCollection("tasks");
-        mongoTemplate.dropCollection("users");
+        mongoTemplate.dropCollection(TASKS);
+        mongoTemplate.dropCollection(USERS);
     }
 
 

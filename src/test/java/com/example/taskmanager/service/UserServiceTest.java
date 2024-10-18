@@ -1,8 +1,6 @@
 package com.example.taskmanager.service;
 
-import com.example.taskmanager.BaseConfig;
-import com.example.taskmanager.dto.TaskDTO;
-import com.example.taskmanager.model.Task;
+import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.model.User;
 import com.example.taskmanager.repository.TaskRepository;
 import com.example.taskmanager.repository.UserRepository;
@@ -13,86 +11,127 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static com.example.taskmanager.DataModelUtils.getEntriesCount;
-import static com.example.taskmanager.DataModelUtils.prepareTask;
 import static com.example.taskmanager.DataModelUtils.prepareUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
-
-public class UserServiceTest extends BaseConfig {
+public class UserServiceTest extends BaseTestConfig {
 
     @Autowired
     private TaskRepository taskRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository rut;
 
     @Autowired
-    private TaskService taskService;
+    private UserService sut;
 
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @Test
-    public void testUpdateTask() {
-        User user = prepareUser().build();
-        userRepository.save(user).block();
-
-        Task taskInitial = prepareTask()
-            .name("Task to update")
-            .description("Initial description")
-            .authorId(user.getId())  // Указываем автора
-            .build();
-        taskRepository.save(taskInitial).block();
-
-        TaskDTO updatedTaskDTO = new TaskDTO();
-        updatedTaskDTO.setName("Updated Task Name");
-        updatedTaskDTO.setDescription("Updated description");
-
-        Mono<TaskDTO> updatedTask = taskService.updateTask(taskInitial.getId(), updatedTaskDTO);
-
-        StepVerifier.create(updatedTask)
-            .assertNext(updatedTaskFound -> {
-                assertThat(updatedTaskFound).isNotNull();
-                assertThat(updatedTaskFound.getName()).isEqualTo("Updated Task Name");
-                assertThat(updatedTaskFound.getDescription()).isEqualTo("Updated description");
-                assertThat(updatedTaskFound.getId()).isEqualTo(taskInitial.getId());
-            })
-            .verifyComplete();
-
-        // Проверяем, что обновленная задача сохранена в базе данных
-        Mono<Task> taskFromDB = taskRepository.findById(taskInitial.getId());
-        StepVerifier.create(taskFromDB)
-            .assertNext(updatedTaskFromDB -> {
-                assertThat(updatedTaskFromDB.getName()).isEqualTo("Updated Task Name");
-                assertThat(updatedTaskFromDB.getDescription()).isEqualTo("Updated description");
-            })
-            .verifyComplete();
-    }
 
     @Test
-    public void testCreateTask() {
+    public void testCreateUser() {
+        final long countBefore = getEntriesCount(mongoTemplate, USERS);
+        assertThat(countBefore)
+            .isZero();
         User user = prepareUser()
-            .username("Test Author")
+            .username("TestUser1")
+            .email("test@example.com")
             .build();
-        userRepository.save(user).block();
 
-        TaskDTO taskDTO = new TaskDTO();
-        taskDTO.setName("Test Task");
-        taskDTO.setDescription("This is a test task.");
+        Mono<User> createdUserMono = sut.createUser(user);
 
-        final String userId = user.getId();
-        Mono<TaskDTO> createdTaskMono = taskService.createTask(taskDTO, userId);
-
-        StepVerifier.create(createdTaskMono)
-            .assertNext(createdTask -> {
-                assertThat(createdTask.getName()).isEqualTo("Test Task");
-                assertThat(createdTask.getDescription()).isEqualTo("This is a test task.");
-                assertThat(createdTask.getAuthorId()).isEqualTo(userId);
+        StepVerifier.create(createdUserMono)
+            .assertNext(createdUser -> {
+                assertThat(createdUser.getUsername()).isEqualTo("TestUser1");
+                assertThat(createdUser.getEmail()).isEqualTo("test@example.com");
+                assertThat(createdUser.getId()).isNotNull();
             })
             .verifyComplete();
-
-        long count = getEntriesCount(mongoTemplate, "tasks");
+        long count = getEntriesCount(mongoTemplate, USERS);
         assertThat(count).isEqualTo(1);
     }
 
+    @Test
+    public void testFindUserById() {
+        User user = prepareUser()
+            .username("TestUser2")
+            .email("testuser@example.com")
+            .build();
+
+        User savedUser = rut.save(user).block();
+        final long countBefore = getEntriesCount(mongoTemplate, USERS);
+        assertThat(countBefore)
+            .isEqualTo(1);
+        Mono<User> foundUserMono = sut.findUserById(savedUser.getId());
+
+        StepVerifier.create(foundUserMono)
+            .assertNext(foundUser -> {
+                assertThat(foundUser).isNotNull();
+                assertThat(foundUser.getUsername()).isEqualTo("TestUser2");
+                assertThat(foundUser.getEmail()).isEqualTo("testuser@example.com");
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    public void testUpdateUser() {
+        User user = prepareUser()
+            .username("OriginalUser")
+            .email("original@example.com")
+            .build();
+
+        User savedUser = rut.save(user).block();
+
+        final long countBefore = getEntriesCount(mongoTemplate, USERS);
+        assertThat(countBefore)
+            .isEqualTo(1);
+        User updatedUser = prepareUser()
+            .username("UpdatedUser")
+            .email("updated@example.com")
+            .build();
+
+        Mono<User> updatedUserMono = sut.updateUser(savedUser.getId(), updatedUser);
+
+        StepVerifier.create(updatedUserMono)
+            .assertNext(userFromDB -> {
+                assertThat(userFromDB.getUsername()).isEqualTo("UpdatedUser");
+                assertThat(userFromDB.getEmail()).isEqualTo("updated@example.com");
+            })
+            .verifyComplete();
+
+        final long countAfter = getEntriesCount(mongoTemplate, USERS);
+        assertThat(countBefore - countAfter)
+            .isZero();
+    }
+
+    @Test
+    public void testDeleteUserById() {
+
+        User user = prepareUser()
+            .username("UserToDelete")
+            .email("delete@example.com")
+            .build();
+        User savedUser = rut.save(user).block();
+
+        final long countBefore = getEntriesCount(mongoTemplate, USERS);
+        assertThat(countBefore)
+            .isEqualTo(1);
+
+        Mono<Void> deleteUserMono = sut.deleteUserById(savedUser.getId());
+
+        StepVerifier.create(deleteUserMono)
+            .verifyComplete();
+        Mono<User> deletedUserMono = rut.findById(savedUser.getId());
+
+        StepVerifier.create(deletedUserMono)
+            .expectNextCount(0)
+            .verifyComplete();
+
+
+        final long countAfter = getEntriesCount(mongoTemplate, USERS);
+        assertThat(countBefore - countAfter)
+            .isPositive()
+            .isEqualTo(1);
+    }
 }

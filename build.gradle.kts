@@ -1,4 +1,4 @@
-import net.ltgt.gradle.errorprone.errorprone
+
 
 plugins {
     id("java")
@@ -46,6 +46,7 @@ dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
     implementation("org.threeten:threeten-extra:1.6.0")
     errorprone("com.google.errorprone:error_prone_core:2.27.1")
+    checkstyle("com.thomasjensen.checkstyle.addons:checkstyle-addons:7.0.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.awaitility:awaitility")
@@ -61,12 +62,14 @@ dependencies {
 
 tasks {
     test {
+        dependsOn(checkstyleTest, checkstyleMain, pmdMain, pmdTest)
+        testLogging.showStandardStreams = false // set to true for debug purposes
         useJUnitPlatform()
         finalizedBy(jacocoTestReport, jacocoTestCoverageVerification)
     }
 
     jacocoTestReport {
-        dependsOn(checkstyleTest, checkstyleMain, pmdMain, pmdTest)
+        dependsOn(test)
         reports {
             xml.required.set(true)
             html.required.set(true)

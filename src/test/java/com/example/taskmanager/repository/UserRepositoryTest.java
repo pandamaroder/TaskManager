@@ -1,8 +1,7 @@
 package com.example.taskmanager.repository;
 
-import com.example.taskmanager.BaseConfig;
+import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.model.User;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -14,7 +13,7 @@ import static com.example.taskmanager.DataModelUtils.getEntriesCount;
 import static com.example.taskmanager.DataModelUtils.prepareUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class UserRepositoryTest extends BaseConfig {
+public class UserRepositoryTest extends BaseTestConfig {
 
     @Autowired
     private UserRepository userRepository;
@@ -22,21 +21,17 @@ public class UserRepositoryTest extends BaseConfig {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @BeforeEach
-    public void setup() {
-        mongoTemplate.dropCollection("users");
-    }
 
     @Test
     public void testGetAllUsers() {
 
-        User user1 = prepareUser().username("User 1").build();
-        User user2 = prepareUser().username("User 2").build();
+        User user1 = prepareUser().username("Test 1").build();
+        User user2 = prepareUser().username("Test 2").build();
 
         userRepository.save(user1).block();
         userRepository.save(user2).block();
 
-        long count = getEntriesCount(mongoTemplate, "users");
+        long count = getEntriesCount(mongoTemplate, USERS);
         assertThat(count)
             .isNotZero()
             .isPositive();
@@ -47,8 +42,8 @@ public class UserRepositoryTest extends BaseConfig {
         Flux<User> users = userRepository.findAll();
 
         StepVerifier.create(users)
-            .expectNextMatches(user -> user.getUsername().equals("User 1"))
-            .expectNextMatches(user -> user.getUsername().equals("User 2"))
+            .expectNextMatches(user -> user.getUsername().equals("Test 1"))
+            .expectNextMatches(user -> user.getUsername().equals("Test 2"))
             .verifyComplete();
     }
 
@@ -70,7 +65,7 @@ public class UserRepositoryTest extends BaseConfig {
             .verifyComplete();
 
 
-        long count = getEntriesCount(mongoTemplate, "users");
+        long count = getEntriesCount(mongoTemplate, USERS);
         assertThat(count)
             .isNotZero()
             .isPositive()
@@ -83,7 +78,7 @@ public class UserRepositoryTest extends BaseConfig {
         User user = prepareUser().username("User to delete").build();
         userRepository.save(user).block();
 
-        long countBefore = getEntriesCount(mongoTemplate, "users");
+        long countBefore = getEntriesCount(mongoTemplate, USERS);
         assertThat(countBefore)
             .isNotZero()
             .isEqualTo(1);
@@ -94,7 +89,7 @@ public class UserRepositoryTest extends BaseConfig {
             .verifyComplete();
 
 
-        long count = getEntriesCount(mongoTemplate, "users");
+        long count = getEntriesCount(mongoTemplate, USERS);
         assertThat(count)
             .isZero();
     }
