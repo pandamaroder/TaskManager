@@ -6,13 +6,14 @@ import com.example.taskmanager.model.User;
 import com.mongodb.client.MongoCollection;
 import lombok.experimental.UtilityClass;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.time.Instant;
 import java.util.HashSet;
 
 @UtilityClass
-public class MongoUtils {
+public class DataModelUtils {
 
     public static long getEntriesCount(final MongoTemplate mongoTemplate, final String collectionName) {
         MongoCollection<Document> collection = mongoTemplate.getCollection(collectionName);
@@ -22,20 +23,22 @@ public class MongoUtils {
 
     public static Task.TaskBuilder<?, ?> prepareTask() {
         return Task.builder()
-            .id("testTaskId")
             .description("This is a test task.")
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .status(TaskStatus.NEW)
-            .authorId("testAuthorId")
             .assigneeId("testAssigneeId")
             .observerIds(new HashSet<>());
     }
 
     public static User.UserBuilder<?, ?> prepareUser() {
         return User.builder()
-            .id("testUserId")
-            .username("Test User")
             .email("testuser@example.com");
+    }
+
+    public static User.UserBuilder<?, ?> prepareUserWithPredefinedId() {
+        return User.builder()
+            .id(new ObjectId().toString())  // Генерация уникального идентификатора на клиенте
+            .email("testuserWithId@example.com");
     }
 }
