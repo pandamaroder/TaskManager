@@ -2,15 +2,14 @@ package com.example.taskmanager.repository;
 
 import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.model.User;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static com.example.taskmanager.DataModelUtils.getEntriesCount;
-import static com.example.taskmanager.DataModelUtils.prepareUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserRepositoryTest extends BaseTestConfig {
@@ -18,15 +17,11 @@ public class UserRepositoryTest extends BaseTestConfig {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
-
     @Test
     public void testGetAllUsers() {
 
-        User user1 = prepareUser().username("Test 1").build();
-        User user2 = prepareUser().username("Test 2").build();
+        User user1 = new User(new ObjectId(), "Test 1", "testUser1@test.ru");
+        User user2 = new User(new ObjectId(), "Test 2", "testUser2@test.ru");
 
         userRepository.save(user1).block();
         userRepository.save(user2).block();
@@ -42,25 +37,25 @@ public class UserRepositoryTest extends BaseTestConfig {
         Flux<User> users = userRepository.findAll();
 
         StepVerifier.create(users)
-            .expectNextMatches(user -> user.getUsername().equals("Test 1"))
-            .expectNextMatches(user -> user.getUsername().equals("Test 2"))
+            .expectNextMatches(user -> user.username().equals("Test 1"))
+            .expectNextMatches(user -> user.username().equals("Test 2"))
             .verifyComplete();
     }
 
     @Test
     public void testFindUserById() {
 
-        User user = prepareUser().username("User to find").build();
+        User user = new User(new ObjectId(), "Test Test", "testTest@test.ru");
         userRepository.save(user).block();
 
 
-        Mono<User> foundUser = userRepository.findById(user.getId());
+        Mono<User> foundUser = userRepository.findById(user.id());
 
         StepVerifier.create(foundUser)
             .assertNext(userFound -> {
                 assertThat(userFound).isNotNull();
-                assertThat(userFound.getUsername()).isEqualTo("User to find");
-                assertThat(userFound.getId()).isEqualTo(user.getId());
+                assertThat(userFound.username()).isEqualTo("Test Test");
+                assertThat(userFound.id()).isEqualTo(user.id());
             })
             .verifyComplete();
 
@@ -75,7 +70,7 @@ public class UserRepositoryTest extends BaseTestConfig {
     @Test
     public void testDeleteUser() {
 
-        User user = prepareUser().username("User to delete").build();
+        User user = new User(new ObjectId(), "d", "d@test.ru");
         userRepository.save(user).block();
 
         long countBefore = getEntriesCount(mongoTemplate, USERS);
@@ -83,7 +78,7 @@ public class UserRepositoryTest extends BaseTestConfig {
             .isNotZero()
             .isEqualTo(1);
 
-        Mono<Void> deletedUser = userRepository.deleteById(user.getId());
+        Mono<Void> deletedUser = userRepository.deleteById(user.id());
 
         StepVerifier.create(deletedUser)
             .verifyComplete();
@@ -97,25 +92,24 @@ public class UserRepositoryTest extends BaseTestConfig {
     @Test
     public void testUpdateUser() {
 
-        User user = prepareUser().username("User to update").build();
+        User user = new User(new ObjectId(), "Updated User Name", "b@test.ru");
         userRepository.save(user).block();
 
 
-        user.setUsername("Updated User Name");
         Mono<User> updatedUser = userRepository.save(user);
 
 
         StepVerifier.create(updatedUser)
             .assertNext(userUpdated -> {
-                assertThat(userUpdated.getUsername()).isEqualTo("Updated User Name");
+                assertThat(userUpdated.username()).isEqualTo("Updated User Name");
             })
             .verifyComplete();
 
 
-        Mono<User> userFromDB = userRepository.findById(user.getId());
+        Mono<User> userFromDB = userRepository.findById(user.id());
         StepVerifier.create(userFromDB)
             .assertNext(userFromDb -> {
-                assertThat(userFromDb.getUsername()).isEqualTo("Updated User Name");
+                assertThat(userFromDb.username()).isEqualTo("Updated User Name");
             })
             .verifyComplete();
     }

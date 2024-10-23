@@ -3,21 +3,30 @@ package com.example.taskmanager;
 
 import com.example.taskmanager.model.Task;
 import com.example.taskmanager.model.User;
-import com.mongodb.client.MongoCollection;
+
+import com.mongodb.reactivestreams.client.MongoCollection;
 import lombok.experimental.UtilityClass;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.reactivestreams.Publisher;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.Objects;
 
 @UtilityClass
 public class DataModelUtils {
 
-    public static long getEntriesCount(final MongoTemplate mongoTemplate, final String collectionName) {
-        MongoCollection<Document> collection = mongoTemplate.getCollection(collectionName);
-        return collection.countDocuments();
+    public static long getEntriesCount(final ReactiveMongoTemplate mongoTemplate2, final String collectionName) {
+        Long block = mongoTemplate2
+            .getCollection(collectionName)
+            .flatMap(e -> Mono.from(e.countDocuments()))
+            .block();
+        return Objects.requireNonNullElse(block, 0L);
+
     }
 
 
@@ -27,18 +36,11 @@ public class DataModelUtils {
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .status(TaskStatus.NEW)
-            .assigneeId("testAssigneeId")
+            .assigneeId(new ObjectId())
             .observerIds(new HashSet<>());
     }
 
-    public static User.UserBuilder<?, ?> prepareUser() {
-        return User.builder()
-            .email("testuser@example.com");
-    }
-
-    public static User.UserBuilder<?, ?> prepareUserWithPredefinedId() {
-        return User.builder()
-            .id(new ObjectId().toString())  // Генерация уникального идентификатора на клиенте
-            .email("testuserWithId@example.com");
+    public static User prepareUser() {
+        return new User(new ObjectId(), "defaultUserName", "testuser@example.com");
     }
 }

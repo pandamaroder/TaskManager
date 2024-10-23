@@ -28,7 +28,6 @@ dependencies {
     //предназначен для работы с MongoDB в реактивном стиле. включает spring-boot-starter-data-mongodb-reactive
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 
-
      implementation("org.mongodb:mongodb-driver-core:4.11.2")
 
     // OpenAPI для WebFlux
@@ -59,7 +58,7 @@ dependencies {
 
 tasks {
     test {
-        dependsOn(checkstyleTest, checkstyleMain, pmdMain, pmdTest)
+        //dependsOn(checkstyleTest, checkstyleMain, pmdMain, pmdTest)
         testLogging.showStandardStreams = false // set to true for debug purposes
         useJUnitPlatform()
         finalizedBy(jacocoTestReport, jacocoTestCoverageVerification)

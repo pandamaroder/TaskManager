@@ -1,10 +1,13 @@
 package com.example.taskmanager.model;
 
 import com.example.taskmanager.TaskStatus;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import nonapi.io.github.classgraph.json.Id;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -14,31 +17,18 @@ import java.util.Set;
 @Getter
 @SuperBuilder
 @Document(collection = "tasks")
-@NoArgsConstructor
+@AllArgsConstructor
 public class Task {
 
-
-    public Task(String id, String name, String description, Instant createdAt, Instant updatedAt, TaskStatus status, String authorId, String assigneeId, Set<String> observerIds) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.status = status;
-        this.authorId = authorId;
-        this.assigneeId = assigneeId;
-        this.observerIds = observerIds;
-    }
-    @Id
-    private String id;
+    private ObjectId id  = new ObjectId();;
     private String name;
     private String description;
     Instant createdAt; // при создании объекта через конструктор
     Instant updatedAt;
     private TaskStatus status;
-    private String authorId;
-    private String assigneeId;
-    private Set<String> observerIds;
+    private ObjectId authorId;
+    private ObjectId assigneeId;
+    private Set<ObjectId> observerIds;
 
     @ReadOnlyProperty
     private User author;
@@ -46,4 +36,9 @@ public class Task {
     private User assignee;
     @ReadOnlyProperty
     private Set<User> observers;
+
+    public Task() {
+        this.id = new ObjectId(); // Или любое другое значение по умолчанию
+    }
+
 }

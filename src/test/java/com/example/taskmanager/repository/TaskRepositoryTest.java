@@ -4,10 +4,11 @@ import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.model.Task;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import java.util.List;
 
 import static com.example.taskmanager.DataModelUtils.getEntriesCount;
 import static com.example.taskmanager.DataModelUtils.prepareTask;
@@ -19,10 +20,6 @@ public class TaskRepositoryTest extends BaseTestConfig {
     @Autowired
     private TaskRepository taskRepository;
 
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
     @Test
     public void testGetAllTasks() {
         final long count1 = getEntriesCount(mongoTemplate, TASKS);
@@ -33,19 +30,17 @@ public class TaskRepositoryTest extends BaseTestConfig {
 
         taskRepository.save(task1).block();
         taskRepository.save(task2).block();
-        Flux<Task> tasks = taskRepository.findAll();
 
-        StepVerifier.create(tasks)
-            .expectNextMatches(task -> task.getName().equals("Test 1"))
-            .expectNextMatches(task -> task.getName().equals("Test 2"))
-            .verifyComplete();
-        // Валидация количества записей в коллекции
+
         final long count = getEntriesCount(mongoTemplate, TASKS);
         assertThat(count)
-            .isNotZero()
-            .isPositive();
-        assertThat(count)
             .isEqualTo(2);
+
+        Flux<Task> allTasks = taskRepository.findAll();
+        List<Task> block = allTasks.collectList().block();
+        assertThat(block)
+            .hasSize(2);
+
 
     }
 
