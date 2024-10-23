@@ -25,14 +25,11 @@ repositories {
 dependencies {
     // Реактивные Spring зависимости
     implementation("org.springframework.boot:spring-boot-starter-webflux")
-    //предназначен для работы с MongoDB в реактивном стиле.
+    //предназначен для работы с MongoDB в реактивном стиле. включает spring-boot-starter-data-mongodb-reactive
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
-    //предоставляет поддержку для работы с MongoDB в синхронном (императивном) стиле.
-     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
 
-    implementation("org.mongodb:mongodb-driver-reactivestreams:4.11.2")
-    implementation("org.mongodb:mongodb-driver-core:4.11.2")
+     implementation("org.mongodb:mongodb-driver-core:4.11.2")
 
     // OpenAPI для WebFlux
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2")

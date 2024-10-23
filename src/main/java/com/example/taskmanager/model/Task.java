@@ -14,10 +14,9 @@ import java.util.Set;
 @Getter
 @SuperBuilder
 @Document(collection = "tasks")
-
+@NoArgsConstructor
 public class Task {
-    public Task() {
-    }
+
 
     public Task(String id, String name, String description, Instant createdAt, Instant updatedAt, TaskStatus status, String authorId, String assigneeId, Set<String> observerIds) {
         this.id = id;
