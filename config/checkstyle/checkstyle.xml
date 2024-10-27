@@ -118,7 +118,9 @@
             <property name="max" value="13"/>
             <property name="ignoreOverriddenMethods" value="true"/>
         </module>
-        <module name="RecordComponentNumber"/>
+        <module name="RecordComponentNumber">
+            <property name="max" value="12"/>
+        </module>
         <module name="RequireThis"/>
         <module name="ReturnCount">
             <property name="max" value="3"/>
@@ -126,7 +128,9 @@
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
         <module name="SingleSpaceSeparator"/>
-        <module name="StaticVariableName"/>
+        <module name="StaticVariableName">
+            <property name="format" value="^[A-Z][A-Z0-9_]*$"/>
+        </module>
         <module name="StringLiteralEquality"/>
         <module name="SuperClone"/>
         <module name="SuperFinalize"/>

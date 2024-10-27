@@ -1,15 +1,9 @@
 package com.example.taskmanager;
 
-
 import com.example.taskmanager.model.Task;
 import com.example.taskmanager.model.User;
-
-import com.mongodb.reactivestreams.client.MongoCollection;
 import lombok.experimental.UtilityClass;
-import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.reactivestreams.Publisher;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import reactor.core.publisher.Mono;
 
@@ -29,18 +23,49 @@ public class DataModelUtils {
 
     }
 
+    public static Task prepareTask() {
+        return new Task(
+            new ObjectId(),
+            "TestTask",
+            "This is a test task.",
+            Instant.now(),
+            Instant.now(),
+            TaskStatus.NEW,
+            new ObjectId(),
+            new ObjectId(),
+            new HashSet<>(),
+            null, // author
+            null, // assignee
+            new HashSet<>() // observers
+        );
 
-    public static Task.TaskBuilder<?, ?> prepareTask() {
-        return Task.builder()
-            .description("This is a test task.")
-            .createdAt(Instant.now())
-            .updatedAt(Instant.now())
-            .status(TaskStatus.NEW)
-            .assigneeId(new ObjectId())
-            .observerIds(new HashSet<>());
+    }
+
+    public static Task prepareDifferentTask() {
+        return new Task(
+            new ObjectId(),
+            "TestTask2",
+            "This is a test task2.",
+            Instant.now(),
+            Instant.now(),
+            TaskStatus.NEW,
+            new ObjectId(),
+            new ObjectId(),
+            new HashSet<>(),
+            null, // author
+            null, // assignee
+            new HashSet<>() // observers
+        );
+
     }
 
     public static User prepareUser() {
+
         return new User(new ObjectId(), "defaultUserName", "testuser@example.com");
+    }
+
+    public static User prepareDifferentUser() {
+
+        return new User(new ObjectId(), "defaultUserName2", "testuser2@example.com");
     }
 }

@@ -31,7 +31,7 @@ public class UserService {
 
     public Mono<User> updateUser(ObjectId id, User user) {
         return userRepository.findById(id).flatMap(existingUser -> {
-            // Создание нового объекта User с существующим id и обновлёнными данными
+
             User updatedUser = new User(existingUser.id(), user.username(), user.email());
             return userRepository.save(updatedUser);
         });

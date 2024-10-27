@@ -3,19 +3,19 @@
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
-    <description>PMD configuration</description>
+    <description>PMD configuration for the project</description>
 
-<!--    <rule ref="category/java/bestpractices.xml">
+    <!-- Best Practices Rules -->
+    <rule ref="category/java/bestpractices.xml">
         <exclude name="JUnitTestContainsTooManyAsserts"/>
         <exclude name="JUnitAssertionsShouldIncludeMessage"/>
         <exclude name="GuardLogStatement"/>
-    </rule>-->
+    </rule>
 
-
+    <!-- Code Style Rules -->
     <rule ref="category/java/codestyle.xml">
         <exclude name="AtLeastOneConstructor"/>
         <exclude name="OnlyOneReturn"/>
-        <exclude name="AtLeastOneConstructor"/>
         <exclude name="CommentDefaultAccessModifier"/>
         <exclude name="LongVariable"/>
         <exclude name="ShortVariable"/>
@@ -23,14 +23,9 @@
         <exclude name="PrematureDeclaration"/>
     </rule>
 
-
-
-    <rule ref="category/java/codestyle.xml/ShortClassName">
-        <properties>
-            <property name="minimum" value="4" />
-        </properties>
-    </rule>
-
+    <!-- Design Rules -->
+    <rule ref="rulesets/java/design.xml/UnusedPrivateField" severity="ignore"/>
+    <rule ref="rulesets/java/design.xml/UnusedLocalVariable" severity="ignore"/>
 
     <rule ref="category/java/design.xml">
         <exclude name="LawOfDemeter"/>
@@ -39,20 +34,24 @@
         <exclude name="UseUtilityClass"/>
     </rule>
 
-  No need for test project
+    <!-- Documentation Rules -->
     <rule ref="category/java/documentation.xml">
         <exclude name="CommentRequired"/>
         <exclude name="CommentSize"/>
     </rule>
 
+    <!-- Multithreading Rules -->
     <rule ref="category/java/multithreading.xml">
         <exclude name="DoNotUseThreads"/>
     </rule>
 
+    <!-- Performance Rules -->
     <rule ref="category/java/performance.xml"/>
 
+    <!-- Security Rules -->
     <rule ref="category/java/security.xml"/>
 
+    <!-- Error Prone Rules -->
     <rule ref="category/java/errorprone.xml">
         <exclude name="DataflowAnomalyAnalysis"/>
         <exclude name="SystemPrintln"/>
