@@ -31,9 +31,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 public class TaskServiceTest extends BaseTestConfig {
 
     @Autowired
-    protected WebTestClient webTestClient;
-
-    @Autowired
     private TaskRepository rut;
 
     @Autowired

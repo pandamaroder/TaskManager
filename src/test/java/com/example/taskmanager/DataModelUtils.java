@@ -14,8 +14,8 @@ import java.util.Objects;
 @UtilityClass
 public class DataModelUtils {
 
-    public static long getEntriesCount(final ReactiveMongoTemplate mongoTemplate2, final String collectionName) {
-        Long block = mongoTemplate2
+    public static long getEntriesCount(final ReactiveMongoTemplate mongoTemplate, final String collectionName) {
+        Long block = mongoTemplate
             .getCollection(collectionName)
             .flatMap(e -> Mono.from(e.countDocuments()))
             .block();
