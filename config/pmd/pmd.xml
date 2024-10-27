@@ -3,6 +3,7 @@
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+
     <description>PMD configuration for the project</description>
 
     <!-- Best Practices Rules -->
@@ -26,7 +27,6 @@
     <!-- Design Rules -->
     <rule ref="rulesets/java/design.xml/UnusedPrivateField" severity="ignore"/>
     <rule ref="rulesets/java/design.xml/UnusedLocalVariable" severity="ignore"/>
-
     <rule ref="category/java/design.xml">
         <exclude name="LawOfDemeter"/>
         <exclude name="LoosePackageCoupling"/>
@@ -53,7 +53,7 @@
 
     <!-- Error Prone Rules -->
     <rule ref="category/java/errorprone.xml">
-        <exclude name="DataflowAnomalyAnalysis"/>
+        <exclude name="DataflowAnomalyAnalysis"/> <!-- Исключаем DU-анализатор -->
         <exclude name="SystemPrintln"/>
         <exclude name="AvoidLiteralsInIfCondition"/>
     </rule>

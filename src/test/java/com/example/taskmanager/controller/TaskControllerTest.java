@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.example.taskmanager.DataModelUtils.getEntriesCount;
 import static java.time.Instant.now;
@@ -40,7 +41,7 @@ public class TaskControllerTest extends BaseTestConfig {
 
     @Test
     public void testCreateTask() {
-
+        AtomicReference<ObjectId> taskId = null;
         User block1 = userService.findUserById(userId).block();
         assertThat(block1)
             .isNotNull();
@@ -76,13 +77,18 @@ public class TaskControllerTest extends BaseTestConfig {
             .expectBody(Task.class)
             .consumeWith(response -> {
                 Task createdTask = response.getResponseBody();
+                taskId.set(createdTask.id());
                 assertThat(createdTask).isNotNull();
                 assertThat(createdTask.name())
                     .isEqualTo(tInitial.name());
                 assertThat(createdTask.author().username())
                     .isEqualTo("Test");
-                assertThat(createdTask.authorId()).isEqualTo(userId);
+                //assertThat(createdTask.authorId()).isEqualTo(userId);
             });
+
+        Task block = taskService.getTaskById(taskId.get()).block();
+        assertThat(block.authorId())
+            .isEqualTo(userId);
     }
 
     @Test
