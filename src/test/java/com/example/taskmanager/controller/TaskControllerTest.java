@@ -77,13 +77,13 @@ public class TaskControllerTest extends BaseTestConfig {
             .expectBody(Task.class)
             .consumeWith(response -> {
                 Task createdTask = response.getResponseBody();
-                taskId.set(createdTask.id());
                 assertThat(createdTask).isNotNull();
                 assertThat(createdTask.name())
                     .isEqualTo(tInitial.name());
                 assertThat(createdTask.author().username())
                     .isEqualTo("Test");
-                //assertThat(createdTask.authorId()).isEqualTo(userId);
+                taskId.set(createdTask.id());
+                assertThat(createdTask.authorId()).isEqualTo(userId);
             });
 
         Task block = taskService.getTaskById(taskId.get()).block();

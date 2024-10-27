@@ -48,11 +48,13 @@ public class TaskService {
                 task.status(),
                 authorId,
                 null,
-                new HashSet<>(), author, // author
+                new HashSet<>(),
+                author, // author
                 null, // assignee
                 new HashSet<>());
             return task1;
-        }).flatMap(taskRepository::save).switchIfEmpty(Mono.error(new UserNotFoundException("User not found, you can't create task")));
+        }).flatMap(taskRepository::save)
+            .switchIfEmpty(Mono.error(new UserNotFoundException("User not found, you can't create task")));
     }
 
     public Mono<Task> updateTask(ObjectId taskId, Task task) {
