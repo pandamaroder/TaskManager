@@ -4,7 +4,10 @@ on:
     push:
         branches:
             - master
-    pull_request:
+            - '**'  # Запускает workflow на каждом коммите в любой ветке
+        pull_request:
+            branches:
+                - '*'
 
 jobs:
     build:
