@@ -1,51 +1,60 @@
-name: Java CI
+<?xml version="1.0"?>
+<ruleset name="Custom ruleset"
+xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
 
-on:
-    push:
-        branches:
-            - master
-            - '**'  # Запускает workflow на каждом коммите в любой ветке
-        pull_request:
-            branches:
-                - '*'
+<description>PMD configuration for the project</description>
 
-jobs:
-    build:
-        runs-on: ubuntu-latest
+<!-- Best Practices Rules -->
+<rule ref="category/java/bestpractices.xml">
+<exclude name="JUnitTestContainsTooManyAsserts"/>
+<exclude name="JUnitAssertionsShouldIncludeMessage"/>
+<exclude name="GuardLogStatement"/>
+</rule>
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+<!-- Code Style Rules -->
+<rule ref="category/java/codestyle.xml">
+<exclude name="AtLeastOneConstructor"/>
+<exclude name="OnlyOneReturn"/>
+<exclude name="CommentDefaultAccessModifier"/>
+<exclude name="LongVariable"/>
+<exclude name="ShortVariable"/>
+<exclude name="MethodArgumentCouldBeFinal"/>
+<exclude name="PrematureDeclaration"/>
+</rule>
 
-            - name: Set up JDK 17
-              uses: actions/setup-java@v4
-              with:
-                  distribution: 'temurin'
-                  java-version: '17'
-                  cache: 'gradle'
+<!-- Design Rules -->
+<rule ref="rulesets/java/design.xml/UnusedPrivateField" severity="ignore"/>
+<rule ref="rulesets/java/design.xml/UnusedLocalVariable" severity="ignore"/>
+<rule ref="category/java/design.xml">
+<exclude name="LawOfDemeter"/>
+<exclude name="LoosePackageCoupling"/>
+<exclude name="AvoidCatchingGenericException"/>
+<exclude name="UseUtilityClass"/>
+</rule>
 
-            - name: Cache SonarCloud packages
-              uses: actions/cache@v3
-              with:
-                  path: ~/.sonar/cache
-                  key: ${{ runner.os }}-sonar
-                  restore-keys: |
-                      ${{ runner.os }}-sonar
+<!-- Documentation Rules -->
+<rule ref="category/java/documentation.xml">
+<exclude name="CommentRequired"/>
+<exclude name="CommentSize"/>
+</rule>
 
-            - name: Cache Gradle packages
-              uses: actions/cache@v3
-              with:
-                  path: ~/.gradle/caches
-                  key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-                  restore-keys: |
-                      ${{ runner.os }}-gradle
+<!-- Multithreading Rules -->
+<rule ref="category/java/multithreading.xml">
+<exclude name="DoNotUseThreads"/>
+</rule>
 
-            - name: Grant execute permission for gradlew
-              run: chmod +x ./gradlew
+<!-- Performance Rules -->
+<rule ref="category/java/performance.xml"/>
 
-            - name: Build and analyze
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: ./gradlew build
+<!-- Security Rules -->
+<rule ref="category/java/security.xml"/>
+
+<!-- Error Prone Rules -->
+<rule ref="category/java/errorprone.xml">
+<exclude name="DataflowAnomalyAnalysis"/> <!-- Исключаем DU-анализатор -->
+<exclude name="SystemPrintln"/>
+<exclude name="AvoidLiteralsInIfCondition"/>
+</rule>
+</ruleset>
