@@ -68,7 +68,7 @@ public class TaskControllerTest extends BaseTestConfig {
         );
 
         webTestClient.post()
-            .uri("/tasks?authorId=" + userId.toString())
+            .uri("/tasks?authorId=" + userId)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(tInitial)
             .exchange()

@@ -128,10 +128,11 @@ public class TaskService {
                         return taskRepository.save(updatedTask);
                     });
             })
-            .flatMap(this::mapTaskWithRelations) // Применяем метод для сопоставления задачи с отношениями
+            .flatMap(this::mapTaskWithRelations)
             .switchIfEmpty(Mono.error(new TaskNotFoundException("Task or observer not found"))); // Обработка случая, если задача или наблюдатель не найдены
     }
 
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     private Mono<Task> mapTaskWithRelations(Task task) {
         final Mono<User> authorMono = userService.findUserById(task.authorId())
             .switchIfEmpty(Mono.error(new TaskNotFoundException("Author not found")));

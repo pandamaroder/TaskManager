@@ -194,7 +194,12 @@ public class TaskServiceTest extends BaseTestConfig {
 
         Task updatedTask = updatedTaskMono.block();
         assertThat(updatedTask).isNotNull();
-        assertThat(updatedTask.observerIds()).contains(observer.id());
+        assertThat(updatedTask.observerIds())
+            .contains(observer.id());
+
+        assertThat(updatedTask.observers())
+            .isNotNull()
+            .contains(observer);
     }
 
     @Test
