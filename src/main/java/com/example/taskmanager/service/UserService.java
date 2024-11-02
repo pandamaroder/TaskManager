@@ -18,26 +18,26 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Mono<User> findUserById(ObjectId id) {
+    public Mono<User> findUserById(String id) {
         if (id == null) {
             return Mono.empty();
         }
-        return userRepository.findById(id);
+        return userRepository.findById(new ObjectId(id));
     }
 
     public Mono<User> createUser(User user) {
         return userRepository.save(user);
     }
 
-    public Mono<User> updateUser(ObjectId id, User user) {
-        return userRepository.findById(id).flatMap(existingUser -> {
+    public Mono<User> updateUser(String id, User user) {
+        return userRepository.findById(new ObjectId(id)).flatMap(existingUser -> {
 
             User updatedUser = new User(existingUser.id(), user.username(), user.email());
             return userRepository.save(updatedUser);
         });
     }
 
-    public Mono<Void> deleteUserById(ObjectId id) {
-        return userRepository.deleteById(id);
+    public Mono<Void> deleteUserById(String id) {
+        return userRepository.deleteById(new ObjectId(id));
     }
 }

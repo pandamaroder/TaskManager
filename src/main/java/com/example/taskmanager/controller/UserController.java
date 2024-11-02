@@ -3,7 +3,6 @@ package com.example.taskmanager.controller;
 import com.example.taskmanager.model.User;
 import com.example.taskmanager.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +28,8 @@ public class UserController {
 
     @GetMapping("/{id}")
     public Mono<User> getUserById(@PathVariable String id) {
-        return userService.findUserById(new ObjectId(id));
+
+        return userService.findUserById(id);
     }
 
     @PostMapping
@@ -41,11 +41,11 @@ public class UserController {
     @PutMapping("/{id}")
     public Mono<User> updateUser(@PathVariable String id, @RequestBody User user) {
 
-        return userService.updateUser(new ObjectId(id), user);
+        return userService.updateUser(id, user);
     }
 
     @DeleteMapping("/{id}")
     public Mono<Void> deleteUser(@PathVariable String id) {
-        return userService.deleteUserById(new ObjectId(id));
+        return userService.deleteUserById(new String(id));
     }
 }

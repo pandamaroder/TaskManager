@@ -2,6 +2,7 @@ package com.example.taskmanager.repository;
 
 import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.model.User;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
@@ -19,6 +20,18 @@ public class UserRepositoryTest extends BaseTestConfig {
     private UserRepository userRepository;
 
     @Test
+    public void testCreateUser() {
+
+        User user = prepareUser();
+        userRepository.save(user).block();
+
+
+        long count = getEntriesCount(mongoTemplate, USERS_COLLECTION);
+        assertThat(count).isNotZero().isPositive();
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
     public void testGetAllUsers() {
 
         User user1 = prepareUser();
@@ -28,18 +41,12 @@ public class UserRepositoryTest extends BaseTestConfig {
         userRepository.save(user2).block();
 
         long count = getEntriesCount(mongoTemplate, USERS_COLLECTION);
-        assertThat(count)
-            .isNotZero()
-            .isPositive();
-        assertThat(count)
-            .isEqualTo(2);
+        assertThat(count).isNotZero().isPositive();
+        assertThat(count).isEqualTo(2);
 
         Flux<User> users = userRepository.findAll();
 
-        StepVerifier.create(users)
-            .expectNextMatches(user -> user.username().equals("defaultUserName"))
-            .expectNextMatches(user -> user.username().equals("defaultUserName2"))
-            .verifyComplete();
+        StepVerifier.create(users).expectNextMatches(user -> user.username().equals("defaultUserName")).expectNextMatches(user -> user.username().equals("defaultUserName2")).verifyComplete();
     }
 
     @Test
@@ -48,21 +55,16 @@ public class UserRepositoryTest extends BaseTestConfig {
         User user = prepareUser();
         userRepository.save(user).block();
 
-        Mono<User> foundUser = userRepository.findById(user.id());
+        Mono<User> foundUser = userRepository.findById(new ObjectId(user.id()));
 
-        StepVerifier.create(foundUser)
-            .assertNext(userFound -> {
-                assertThat(userFound).isNotNull();
-                assertThat(userFound.username()).isEqualTo("defaultUserName");
-                assertThat(userFound.id()).isEqualTo(user.id());
-            })
-            .verifyComplete();
+        StepVerifier.create(foundUser).assertNext(userFound -> {
+            assertThat(userFound).isNotNull();
+            assertThat(userFound.username()).isEqualTo("defaultUserName");
+            assertThat(userFound.id()).isEqualTo(user.id());
+        }).verifyComplete();
 
         long count = getEntriesCount(mongoTemplate, USERS_COLLECTION);
-        assertThat(count)
-            .isNotZero()
-            .isPositive()
-            .isEqualTo(1);
+        assertThat(count).isNotZero().isPositive().isEqualTo(1);
     }
 
     @Test
@@ -72,18 +74,14 @@ public class UserRepositoryTest extends BaseTestConfig {
         userRepository.save(user).block();
 
         long countBefore = getEntriesCount(mongoTemplate, USERS_COLLECTION);
-        assertThat(countBefore)
-            .isNotZero()
-            .isEqualTo(1);
+        assertThat(countBefore).isNotZero().isEqualTo(1);
 
-        Mono<Void> deletedUser = userRepository.deleteById(user.id());
+        Mono<Void> deletedUser = userRepository.deleteById(new ObjectId(user.id()));
 
-        StepVerifier.create(deletedUser)
-            .verifyComplete();
+        StepVerifier.create(deletedUser).verifyComplete();
 
         long count = getEntriesCount(mongoTemplate, USERS_COLLECTION);
-        assertThat(count)
-            .isZero();
+        assertThat(count).isZero();
     }
 
     @Test
@@ -94,19 +92,14 @@ public class UserRepositoryTest extends BaseTestConfig {
 
         Mono<User> updatedUser = userRepository.save(user);
 
-        StepVerifier.create(updatedUser)
-            .assertNext(userUpdated -> {
-                assertThat(userUpdated.username()).isEqualTo("defaultUserName2");
-            })
-            .verifyComplete();
+        StepVerifier.create(updatedUser).assertNext(userUpdated -> {
+            assertThat(userUpdated.username()).isEqualTo("defaultUserName2");
+        }).verifyComplete();
 
-        Mono<User> userFromDbase = userRepository.findById(user.id());
+        Mono<User> userFromDbase = userRepository.findById(new ObjectId(user.id()));
         User block = userFromDbase.block();
-        assertThat(block)
-            .isNotNull();
-        assertThat(block.id())
-            .isNotNull()
-            .isEqualTo(user.id());
+        assertThat(block).isNotNull();
+        assertThat(block.id()).isNotNull().isEqualTo(user.id());
 
     }
 }

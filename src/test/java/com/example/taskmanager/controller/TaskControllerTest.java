@@ -1,24 +1,22 @@
 package com.example.taskmanager.controller;
 
 import com.example.taskmanager.BaseTestConfig;
-import com.example.taskmanager.TaskStatus;
 import com.example.taskmanager.model.Task;
 import com.example.taskmanager.model.User;
+import com.example.taskmanager.repository.TaskRepository;
 import com.example.taskmanager.service.TaskService;
 import com.example.taskmanager.service.UserService;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.example.taskmanager.DataModelUtils.getEntriesCount;
-import static java.time.Instant.now;
+import static com.example.taskmanager.DataModelUtils.prepareTask;
+import static com.example.taskmanager.DataModelUtils.prepareUser;
+import static com.example.taskmanager.model.Task.withCreatorTaskId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskControllerTest extends BaseTestConfig {
@@ -29,19 +27,16 @@ public class TaskControllerTest extends BaseTestConfig {
     @Autowired
     private TaskService taskService;
 
-    private ObjectId userId;
+    @Autowired
+    private TaskRepository taskRepository;
 
-    @BeforeEach
-    public void setup() {
-
-        User testUser = new User(new ObjectId(), "Test", "test@test.ru");
-
-        userId = userService.createUser(testUser).block().id();
-    }
 
     @Test
     public void testCreateTask() {
-        AtomicReference<ObjectId> taskId = null;
+        User testUser = prepareUser();
+
+        String userId = userService.createUser(testUser).block().id();
+
         User block1 = userService.findUserById(userId).block();
         assertThat(block1)
             .isNotNull();
@@ -53,63 +48,42 @@ public class TaskControllerTest extends BaseTestConfig {
         assertThat(countTaskBefore).isEqualTo(0);
         assertThat(countUsersBefore).isEqualTo(1);
 
-        Task tInitial = new Task(
-            new ObjectId(),
-            "No update",
-            "Initial description",
-            now(),
-            now(),
-            TaskStatus.NEW,
-            null, // authorId изначально не указываем
-            null,
-            new HashSet<>(),
-            null,
-            null,
-            new HashSet<>()
-        );
+        Task tInitial = prepareTask();
 
-        webTestClient.post()
+        Task createdTask = webTestClient.post()
             .uri("/tasks?authorId=" + userId)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(tInitial)
             .exchange()
             .expectStatus().isOk()
             .expectBody(Task.class)
-            .consumeWith(response -> {
-                Task createdTask = response.getResponseBody();
-                assertThat(createdTask).isNotNull();
-                assertThat(createdTask.name())
-                    .isEqualTo(tInitial.name());
-                assertThat(createdTask.author().username())
-                    .isEqualTo("Test");
-                taskId.set(createdTask.id());
-                assertThat(createdTask.authorId()).isEqualTo(userId);
-            });
+            .returnResult()
+            .getResponseBody();
 
-        Task block = taskService.getTaskById(taskId.get()).block();
-        assertThat(block.authorId())
-            .isEqualTo(userId);
+        final long countTaskAfter = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
+        assertThat(countTaskAfter).isEqualTo(1);
+        assertThat(createdTask).isNotNull();
+        assertThat(createdTask.name())
+            .isEqualTo(tInitial.name());
+        assertThat(createdTask.author().username())
+            .isEqualTo("defaultUserName");
+        Task initTaskAfterSave = mongoTemplate.findById(tInitial.id(), Task.class).block();
+        Task createdTaskAfterSave = mongoTemplate.findById(createdTask.id(), Task.class).block();
+        assertThat(createdTask.id())
+            .isEqualTo(tInitial.id());
+        assertThat(createdTask.authorId()).isEqualTo(userId);
+
+
     }
 
     @Test
     public void testGetAllTasksVerifyReturnTask() {
+        User testUser = new User(ObjectId.get().toHexString(), "Test", "test@test.ru");
 
-        Task newTestTask = new Task(
-            new ObjectId(),
-            "TestControllerCreateTask",
-            "Initial description",
-            Instant.now(),
-            Instant.now(),
-            TaskStatus.NEW,
-            null,
-            null,
-            new HashSet<>(),
-            null,
-            null,
-            new HashSet<>()
-        );
+        String userId = userService.createUser(testUser).block().id();
 
-        taskService.createTask(newTestTask, userId);
+        Task taskWithAuthor = withCreatorTaskId(userId);
+        taskRepository.save(taskWithAuthor).block();
         long count = getEntriesCount(mongoTemplate, "tasks");
         assertThat(count).isEqualTo(1);
 
@@ -123,7 +97,7 @@ public class TaskControllerTest extends BaseTestConfig {
                 List<Task> tasks = response.getResponseBody();
                 assertThat(tasks).isNotNull();
                 assertThat(tasks).hasSize(1);
-                assertThat(tasks.get(0).name()).isEqualTo("TestControllerCreateTask");
+                assertThat(tasks.get(0).name()).isEqualTo("Default Name");
                 assertThat(tasks.get(0).authorId()).isEqualTo(userId);
             });
     }

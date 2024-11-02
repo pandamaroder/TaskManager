@@ -25,14 +25,14 @@ public class DataModelUtils {
 
     public static Task prepareTask() {
         return new Task(
-            new ObjectId(),
+            ObjectId.get().toHexString(),
             "TestTask",
             "This is a test task.",
             Instant.now(),
             Instant.now(),
             TaskStatus.NEW,
-            new ObjectId(),
-            new ObjectId(),
+            null,
+            null,
             new HashSet<>(),
             null, // author
             null, // assignee
@@ -43,14 +43,14 @@ public class DataModelUtils {
 
     public static Task prepareDifferentTask() {
         return new Task(
-            new ObjectId(),
+            ObjectId.get().toHexString(),
             "TestTask2",
             "This is a test task2.",
             Instant.now(),
             Instant.now(),
             TaskStatus.NEW,
-            new ObjectId(),
-            new ObjectId(),
+            null,
+            null,
             new HashSet<>(),
             null, // author
             null, // assignee
@@ -61,11 +61,12 @@ public class DataModelUtils {
 
     public static User prepareUser() {
 
-        return new User(new ObjectId(), "defaultUserName", "testuser@example.com");
+        return new User(ObjectId.get().toHexString(), "defaultUserName", "testuser@example.com");
     }
 
     public static User prepareDifferentUser() {
 
-        return new User(new ObjectId(), "defaultUserName2", "testuser2@example.com");
+        return new User(ObjectId.get().toHexString(), "defaultUserName2", "testuser2@example.com");
     }
+
 }

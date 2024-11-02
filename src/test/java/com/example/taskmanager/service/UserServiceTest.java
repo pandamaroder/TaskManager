@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static com.example.taskmanager.DataModelUtils.getEntriesCount;
+import static com.example.taskmanager.DataModelUtils.prepareDifferentUser;
 import static com.example.taskmanager.DataModelUtils.prepareUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,13 +31,13 @@ public class UserServiceTest extends BaseTestConfig {
     public void testCreateUser() {
         final long countBefore = getEntriesCount(mongoTemplate, USERS_COLLECTION);
         assertThat(countBefore).isZero();
-        User user = new User(new ObjectId(), "TestUser1", "test@example.com");
+        User user = prepareUser();
 
         Mono<User> createdUserMono = sut.createUser(user);
 
         StepVerifier.create(createdUserMono).assertNext(createdUser -> {
-            assertThat(createdUser.username()).isEqualTo("TestUser1");
-            assertThat(createdUser.email()).isEqualTo("test@example.com");
+            assertThat(createdUser.username()).isEqualTo("defaultUserName");
+            assertThat(createdUser.email()).isEqualTo("testuser@example.com");
             assertThat(createdUser.id()).isNotNull();
         }).verifyComplete();
         long count = getEntriesCount(mongoTemplate, USERS_COLLECTION);
@@ -45,7 +46,7 @@ public class UserServiceTest extends BaseTestConfig {
 
     @Test
     public void testFindUserById() {
-        User user = new User(new ObjectId(), "TestUser2", "testuser@example.com");
+        User user = prepareUser();
 
         User savedUser = rut.save(user).block();
         final long countBefore = getEntriesCount(mongoTemplate, USERS_COLLECTION);
@@ -54,8 +55,7 @@ public class UserServiceTest extends BaseTestConfig {
 
         StepVerifier.create(foundUserMono).assertNext(foundUser -> {
             assertThat(foundUser).isNotNull();
-            assertThat(foundUser.username()).isEqualTo("TestUser2");
-            assertThat(foundUser.email()).isEqualTo("testuser@example.com");
+            assertThat(foundUser.username()).isEqualTo("defaultUserName");
         }).verifyComplete();
     }
 
@@ -67,7 +67,7 @@ public class UserServiceTest extends BaseTestConfig {
 
         final long countBefore = getEntriesCount(mongoTemplate, USERS_COLLECTION);
         assertThat(countBefore).isEqualTo(1);
-        User updatedUser = new User(new ObjectId(), "UpdatedUser", "updated@test.ru");
+        User updatedUser = prepareUser();
 
         Mono<User> userMono = sut.updateUser(savedUser.id(), updatedUser);
         User block = userMono.block();
@@ -84,7 +84,7 @@ public class UserServiceTest extends BaseTestConfig {
 
     @Test
     public void testDeleteUserById() {
-        User user = new User(new ObjectId(), "UserToDelete", "delete@example.com");
+        User user = prepareUser();
         User savedUser = rut.save(user).block();
 
         final long countBefore = getEntriesCount(mongoTemplate, USERS_COLLECTION);
@@ -94,7 +94,7 @@ public class UserServiceTest extends BaseTestConfig {
 
         StepVerifier.create(deleteUserMono).verifyComplete();
 
-        Mono<User> deletedUserMono = rut.findById(savedUser.id());
+        Mono<User> deletedUserMono = rut.findById(new ObjectId(savedUser.id()));
 
         StepVerifier.create(deletedUserMono).expectNextCount(0).verifyComplete();
 
@@ -104,8 +104,8 @@ public class UserServiceTest extends BaseTestConfig {
 
     @Test
     public void testFindAllUsers() {
-        User user1 = new User(new ObjectId(), "Test 1", "test1@example.com");
-        User user2 = new User(new ObjectId(), "Test 2", "test2@example.com");
+        User user1 = prepareUser();
+        User user2 = prepareDifferentUser();
 
         rut.save(user1).block();
         rut.save(user2).block();
@@ -117,8 +117,8 @@ public class UserServiceTest extends BaseTestConfig {
         Flux<User> allUsers = sut.findAllUsers();
 
         StepVerifier.create(allUsers)
-            .expectNextMatches(userDTO -> userDTO.username().equals("Test 1"))
-            .expectNextMatches(userDTO -> userDTO.username().equals("Test 2"))
+            .expectNextMatches(userDTO -> userDTO.username().equals("defaultUserName"))
+            .expectNextMatches(userDTO -> userDTO.username().equals("defaultUserName2"))
             .verifyComplete();
     }
 }
