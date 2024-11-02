@@ -28,8 +28,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public Mono<User> getUserById(@PathVariable String id) {
-        return userService.findUserById(new ObjectId(id));
+    public Mono<User> getUserById(@PathVariable ObjectId id) {
+
+        return userService.findUserById(id);
     }
 
     @PostMapping
@@ -39,9 +40,9 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public Mono<User> updateUser(@PathVariable String id, @RequestBody User user) {
+    public Mono<User> updateUser(@PathVariable ObjectId id, @RequestBody User user) {
 
-        return userService.updateUser(new ObjectId(id), user);
+        return userService.updateUser(id, user);
     }
 
     @DeleteMapping("/{id}")

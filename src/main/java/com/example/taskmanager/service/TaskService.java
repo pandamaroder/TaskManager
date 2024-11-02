@@ -37,26 +37,6 @@ public class TaskService {
         return taskRepository.findById(id).flatMap(this::mapTaskWithRelations);
     }
 
-    public Mono<Task> createTask(Task task, ObjectId authorId) {
-
-        return userRepository.findById(authorId).map(author -> {
-            Task task1 = new Task(task.id(),
-                task.name(),
-                task.description(),
-                Instant.now(),
-                Instant.now(),
-                task.status(),
-                authorId,
-                null,
-                new HashSet<>(),
-                author, // author
-                null, // assignee
-                new HashSet<>());
-            return task1;
-        }).flatMap(taskRepository::save)
-            .switchIfEmpty(Mono.error(new UserNotFoundException("User not found, you can't create task")));
-    }
-
     public Mono<Task> updateTask(ObjectId taskId, Task task) {
         return taskRepository.findById(taskId).flatMap(existingTask -> {
             Mono<User> authorMono = userService.findUserById(task.authorId())

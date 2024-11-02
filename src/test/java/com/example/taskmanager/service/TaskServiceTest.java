@@ -10,7 +10,6 @@ import com.example.taskmanager.repository.UserRepository;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -20,10 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.example.taskmanager.DataModelUtils.getEntriesCount;
-import static com.example.taskmanager.DataModelUtils.prepareDifferentUser;
-import static com.example.taskmanager.DataModelUtils.prepareTask;
-import static com.example.taskmanager.DataModelUtils.prepareUser;
+import static com.example.taskmanager.DataModelUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -107,21 +103,18 @@ public class TaskServiceTest extends BaseTestConfig {
         );
 
         final ObjectId userId = user.id();
-        Task createdTask = sut.createTask(newTestTask, userId).block();
-        assertThat(createdTask)
-            .isNotNull();
-        assertThat(createdTask.id())
-            .isNotNull()
-                .isEqualTo(newTestTask.id());
-        assertThat(createdTask.authorId())
-            .isNotNull()
-            .isEqualTo(userId);
-        assertThat(createdTask.name())
-            .isEqualTo(newTestTask.name());
+        Task createdTask = Task.createTaskWithAuthor(newTestTask, userId, user);
+        Task savedTask = rut.save(createdTask).block();
 
+        // Проверки
+        assertThat(savedTask).isNotNull();
+        assertThat(savedTask.id()).isNotNull().isEqualTo(newTestTask.id());
+        assertThat(savedTask.authorId()).isNotNull().isEqualTo(userId);
+        assertThat(savedTask.name()).isEqualTo(newTestTask.name());
+
+        // Проверка увеличения числа записей в коллекции
         long countAfter = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
-        assertThat(countAfter - countBefore).isPositive()
-            .isEqualTo(1);
+        assertThat(countAfter - countBefore).isPositive().isEqualTo(1);
     }
 
     @Test
@@ -148,12 +141,8 @@ public class TaskServiceTest extends BaseTestConfig {
         );
 
         final ObjectId userId = user.id();
-        Mono<Task> createdTaskMono = sut.createTask(testTask, userId);
-
-        StepVerifier.create(createdTaskMono).assertNext(createdTask -> {
-            assertThat(createdTask.name()).isEqualTo("No update");
-            assertThat(createdTask.authorId()).isEqualTo(userId);
-        }).verifyComplete();
+        Task taskWithAuthor = Task.createTaskWithAuthor(testTask, userId, user);
+        rut.save(taskWithAuthor).block();
 
         Flux<Task> allTasks = sut.getAllTasks();
         List<Task> block = allTasks.collectList().block();

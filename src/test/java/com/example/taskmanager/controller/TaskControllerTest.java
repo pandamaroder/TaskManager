@@ -4,10 +4,11 @@ import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.TaskStatus;
 import com.example.taskmanager.model.Task;
 import com.example.taskmanager.model.User;
+import com.example.taskmanager.repository.TaskRepository;
+import com.example.taskmanager.repository.UserRepository;
 import com.example.taskmanager.service.TaskService;
 import com.example.taskmanager.service.UserService;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.example.taskmanager.DataModelUtils.getEntriesCount;
+import static com.example.taskmanager.model.Task.createTaskWithAuthor;
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,15 +31,11 @@ public class TaskControllerTest extends BaseTestConfig {
     @Autowired
     private TaskService taskService;
 
+    @Autowired
+    private TaskRepository taskRepository;
+
     private ObjectId userId;
 
-    @BeforeEach
-    public void setup() {
-
-        User testUser = new User(new ObjectId(), "Test", "test@test.ru");
-
-        userId = userService.createUser(testUser).block().id();
-    }
 
     @Test
     public void testCreateTask() {
@@ -93,7 +91,9 @@ public class TaskControllerTest extends BaseTestConfig {
 
     @Test
     public void testGetAllTasksVerifyReturnTask() {
+        User testUser = new User(new ObjectId(), "Test", "test@test.ru");
 
+        userId = userService.createUser(testUser).block().id();
         Task newTestTask = new Task(
             new ObjectId(),
             "TestControllerCreateTask",
@@ -109,7 +109,8 @@ public class TaskControllerTest extends BaseTestConfig {
             new HashSet<>()
         );
 
-        taskService.createTask(newTestTask, userId);
+        Task taskWithAuthor = createTaskWithAuthor(newTestTask, userId, testUser);
+        taskRepository.save(taskWithAuthor).block();
         long count = getEntriesCount(mongoTemplate, "tasks");
         assertThat(count).isEqualTo(1);
 
