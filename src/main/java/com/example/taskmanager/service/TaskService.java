@@ -27,6 +27,7 @@ public class TaskService {
     private final UserService userService;
 
     public Flux<Task> getAllTasks() {
+        //TODO достать всех авторов и наблюдателей
         return taskRepository.findAll();
     }
 

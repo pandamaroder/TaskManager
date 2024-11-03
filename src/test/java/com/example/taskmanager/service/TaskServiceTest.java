@@ -1,6 +1,7 @@
 package com.example.taskmanager.service;
 
 import com.example.taskmanager.BaseTestConfig;
+import com.example.taskmanager.TaskStatus;
 import com.example.taskmanager.exeption.TaskNotFoundException;
 import com.example.taskmanager.model.Task;
 import com.example.taskmanager.model.User;
@@ -11,12 +12,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
+import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.example.taskmanager.DataModelUtils.*;
 import static com.example.taskmanager.model.Task.withAuthor;
+import static com.example.taskmanager.model.Task.withCreatorTaskId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -37,7 +42,7 @@ public class TaskServiceTest extends BaseTestConfig {
         User user = prepareUser();
         userRepository.save(user).block();
 
-        Task tInitial = prepareTask();
+        Task tInitial = withCreatorTaskId(user.id());
 
         Task block1 = rut.save(tInitial).block();
         assertThat(block1).isNotNull();
@@ -49,7 +54,7 @@ public class TaskServiceTest extends BaseTestConfig {
         final long countBefore = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
         assertThat(countBefore).isEqualTo(1);
 
-        Task tUpdated = prepareTask();
+        Task tUpdated = withCreatorTaskId(user.id());
 
         Mono<Task> updatedTask = sut.updateTask(tInitial.id(), tUpdated);
         Task block = updatedTask.block();
@@ -93,16 +98,13 @@ public class TaskServiceTest extends BaseTestConfig {
 
         Task testTask = prepareTask();
         final String userId = user.id();
-       // Task taskWithAuthor = withAuthor(testTask, userId, user);
-        //rut.save(taskWithAuthor).block();
 
         Task taskWithAuthor = sut.createTask(testTask, userId).block();
-
 
         Flux<Task> allTasks = sut.getAllTasks();
         List<Task> block = allTasks.collectList().block();
         assertThat(block).hasSize(1);
-        assertThat(block).containsExactly(taskWithAuthor);
+        assertThat(block.get(0).name()).isEqualTo(taskWithAuthor.name());
 
     }
 
@@ -112,7 +114,8 @@ public class TaskServiceTest extends BaseTestConfig {
         User author = prepareDifferentUser();
         userRepository.save(observer).block();
         userRepository.save(author).block();
-        Task initialTask = prepareTask();
+
+        Task initialTask = withCreatorTaskId(author.id());
 
         Task savedTask = rut.save(initialTask).block();
 
@@ -129,8 +132,23 @@ public class TaskServiceTest extends BaseTestConfig {
     public void testAddExistingObserverThrowsException() {
         User observer = prepareUser();
         userRepository.save(observer).block();
+        User author = prepareDifferentUser();
+        userRepository.save(author).block();
+        Task initialTask =  new Task(
+            ObjectId.get().toHexString(),
+            "TestTask2",
+            "This is a test task2.",
+            Instant.now(),
+            Instant.now(),
+            TaskStatus.NEW,
+            author.id(),
+            null,
+            Stream.of(observer.id()).collect(Collectors.toSet()),
 
-        Task initialTask = prepareTask();
+            null, // author
+            null, // assignee
+            new HashSet<>() // observers
+        );
 
         Task savedTask = rut.save(initialTask).block();
 

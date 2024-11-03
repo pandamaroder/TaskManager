@@ -2,7 +2,6 @@ package com.example.taskmanager.repository;
 
 import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.model.Task;
-import com.example.taskmanager.model.User;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import java.util.List;
 import static com.example.taskmanager.DataModelUtils.getEntriesCount;
 import static com.example.taskmanager.DataModelUtils.prepareDifferentTask;
 import static com.example.taskmanager.DataModelUtils.prepareTask;
-import static com.example.taskmanager.DataModelUtils.prepareUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskRepositoryTest extends BaseTestConfig {
