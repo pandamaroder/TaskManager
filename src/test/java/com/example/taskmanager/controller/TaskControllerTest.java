@@ -13,7 +13,10 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 
-import static com.example.taskmanager.DataModelUtils.*;
+import static com.example.taskmanager.DataModelUtils.getEntriesCount;
+import static com.example.taskmanager.DataModelUtils.prepareTask;
+import static com.example.taskmanager.DataModelUtils.prepareUser;
+import static com.example.taskmanager.model.Task.withCreatorTaskId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskControllerTest extends BaseTestConfig {
@@ -79,7 +82,7 @@ public class TaskControllerTest extends BaseTestConfig {
 
         String userId = userService.createUser(testUser).block().id();
 
-        Task taskWithAuthor = withAuthorId(userId);
+        Task taskWithAuthor = withCreatorTaskId(userId);
         taskRepository.save(taskWithAuthor).block();
         long count = getEntriesCount(mongoTemplate, "tasks");
         assertThat(count).isEqualTo(1);

@@ -42,5 +42,22 @@ public record Task(
             new HashSet<>() // observers
         );
     }
+
+    public static Task withCreatorTaskId(String authorId) {
+        return new Task(
+            ObjectId.get().toHexString(),
+            "Default Name",
+            "Default Description",
+            Instant.now(),
+            Instant.now(),
+            TaskStatus.NEW,
+            authorId,
+            null,
+            new HashSet<>(),
+            null,
+            null,
+            new HashSet<>()
+        );
+    }
 }
 
