@@ -1,7 +1,6 @@
 package com.example.taskmanager.service;
 
 import com.example.taskmanager.BaseTestConfig;
-import com.example.taskmanager.TaskStatus;
 import com.example.taskmanager.exeption.TaskNotFoundException;
 import com.example.taskmanager.model.Task;
 import com.example.taskmanager.model.User;
@@ -14,12 +13,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.example.taskmanager.DataModelUtils.*;
+import static com.example.taskmanager.model.Task.withAuthor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -43,39 +40,21 @@ public class TaskServiceTest extends BaseTestConfig {
         Task tInitial = prepareTask();
 
         Task block1 = rut.save(tInitial).block();
-        assertThat(block1)
-            .isNotNull();
-        assertThat(block1.id())
-            .isEqualTo(tInitial.id());
-        final ObjectId initialTaskId = tInitial.id();
-        Task block2 = rut.findById(initialTaskId).block();
-        assertThat(block2)
-            .isNotNull();
+        assertThat(block1).isNotNull();
+        assertThat(block1.id()).isEqualTo(tInitial.id());
+        final String initialTaskId = tInitial.id();
+        Task block2 = rut.findById(new ObjectId(initialTaskId)).block();
+        assertThat(block2).isNotNull();
 
         final long countBefore = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
         assertThat(countBefore).isEqualTo(1);
 
-        Task tUpdated = new Task(
-            new ObjectId(),
-            "Updated Name",
-            "Updated description",
-            tInitial.createdAt(),
-            Instant.now(),
-            TaskStatus.IN_PROGRESS,
-            user.id(),
-            null,
-            new HashSet<>(),
-            user,
-            null,
-            new HashSet<>()
-        );
+        Task tUpdated = prepareTask();
 
         Mono<Task> updatedTask = sut.updateTask(tInitial.id(), tUpdated);
         Task block = updatedTask.block();
-        assertThat(block)
-            .isNotNull();
-        assertThat(block.id())
-            .isEqualTo(tInitial.id());
+        assertThat(block).isNotNull();
+        assertThat(block.id()).isEqualTo(tInitial.id());
 
     }
 
@@ -87,24 +66,11 @@ public class TaskServiceTest extends BaseTestConfig {
         User user = prepareUser();
         userRepository.save(user).block();
 
-        Task newTestTask = new Task(
-            new ObjectId(),
-            "Init",
-            "dfdfdf",
-            Instant.now(),
-            Instant.now(),
-            TaskStatus.NEW,
-            null,
-            null,
-            new HashSet<>(),
-            null,
-            null,
-            new HashSet<>()
-        );
+        Task newTestTask = prepareTask();
 
-        final ObjectId userId = user.id();
-        Task createdTask = Task.createTaskWithAuthor(newTestTask, userId, user);
-        Task savedTask = rut.save(createdTask).block();
+        final String userId = user.id();
+        Task createdTask = withAuthor(newTestTask, userId, user);
+        Task savedTask = sut.createTask(createdTask, userId).block();
 
         // Проверки
         assertThat(savedTask).isNotNull();
@@ -122,35 +88,19 @@ public class TaskServiceTest extends BaseTestConfig {
         final long countBefore = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
         assertThat(countBefore).isZero();
 
-        User user = new User(new ObjectId(), "m", "m@test.ru");
+        User user = new User("", "m", "m@test.ru");
         userRepository.save(user).block();
 
-        Task testTask = new Task(
-            new ObjectId(),
-            "No update",
-            "gjghkghfgh",
-            Instant.now(),
-            Instant.now(),
-            TaskStatus.NEW,
-            user.id(),
-            null,
-            new HashSet<>(),
-            user,
-            null,
-            new HashSet<>()
-        );
-
-        final ObjectId userId = user.id();
-        Task taskWithAuthor = Task.createTaskWithAuthor(testTask, userId, user);
+        Task testTask = prepareTask();
+        final String userId = user.id();
+        Task taskWithAuthor = withAuthor(testTask, userId, user);
         rut.save(taskWithAuthor).block();
 
         Flux<Task> allTasks = sut.getAllTasks();
         List<Task> block = allTasks.collectList().block();
         assertThat(block).hasSize(1);
 
-        StepVerifier.create(allTasks)
-            .expectNextMatches(task -> task.name().equals("No update"))
-            .verifyComplete();
+        StepVerifier.create(allTasks).expectNextMatches(task -> task.name().equals("No update")).verifyComplete();
     }
 
     @Test
@@ -159,20 +109,7 @@ public class TaskServiceTest extends BaseTestConfig {
         User author = prepareDifferentUser();
         userRepository.save(observer).block();
         userRepository.save(author).block();
-        Task initialTask = new Task(
-            new ObjectId(),
-            "Initial Task",
-            "Task description",
-            Instant.now(),
-            Instant.now(),
-            TaskStatus.IN_PROGRESS,
-            author.id(),
-            null,
-            new HashSet<>(),
-            author,
-            null,
-            new HashSet<>()
-        );
+        Task initialTask = prepareTask();
 
         Task savedTask = rut.save(initialTask).block();
 
@@ -180,82 +117,48 @@ public class TaskServiceTest extends BaseTestConfig {
 
         Task updatedTask = updatedTaskMono.block();
         assertThat(updatedTask).isNotNull();
-        assertThat(updatedTask.observerIds())
-            .contains(observer.id());
+        assertThat(updatedTask.observerIds()).contains(observer.id());
 
-        assertThat(updatedTask.observers())
-            .isNotNull()
-            .contains(observer);
+        assertThat(updatedTask.observers()).isNotNull().contains(observer);
     }
 
     @Test
     public void testAddExistingObserverThrowsException() {
-        User observer = new User(new ObjectId(), "Observer", "observer@test.com");
+        User observer = prepareUser();
         userRepository.save(observer).block();
 
-        Task initialTask = new Task(
-            new ObjectId(),
-            "Initial Task",
-            "Task description",
-            Instant.now(),
-            Instant.now(),
-            TaskStatus.IN_PROGRESS,
-            new ObjectId(),
-            new ObjectId(),
-            new HashSet<>(Set.of(observer.id())),
-            null,
-            null,
-            new HashSet<>()
-        );
+        Task initialTask = prepareTask();
 
         Task savedTask = rut.save(initialTask).block();
 
         Mono<Task> result = sut.addObserver(savedTask.id(), observer.id());
 
         assertThat(result).isNotNull();
-        assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> result.block());
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> result.block());
     }
 
     @Test
     public void testAddObserverToNonExistentTask() {
-        User observer = new User(new ObjectId(), "Observer", "observer@test.com");
+        User observer = prepareUser();
         userRepository.save(observer).block();
 
-        Mono<Task> result = sut.addObserver(new ObjectId(), observer.id());
+        Mono<Task> result = sut.addObserver(ObjectId.get().toHexString(), observer.id());
 
         assertThat(result).isNotNull();
-        assertThatThrownBy(result::block)
-            .isInstanceOf(TaskNotFoundException.class)
-            .hasMessageContaining("Task or observer not found");
+        assertThatThrownBy(result::block).isInstanceOf(TaskNotFoundException.class).hasMessageContaining("Task or observer not found");
 
     }
 
     @Test
     public void testAddObserverWithNonExistentObserver() {
-        Task initialTask = new Task(
-            new ObjectId(),
-            "Initial Task",
-            "Task description",
-            Instant.now(),
-            Instant.now(),
-            TaskStatus.IN_PROGRESS,
-            new ObjectId(),
-            new ObjectId(),
-            new HashSet<>(),
-            null,
-            null,
-            new HashSet<>()
-        );
+        Task initialTask = prepareTask();
 
         Task savedTask = rut.save(initialTask).block();
 
-        Mono<Task> result = sut.addObserver(savedTask.id(), new ObjectId());
+        Mono<Task> result = sut.addObserver(savedTask.id(), ObjectId.get().toHexString());
 
         assertThat(result).isNotNull();
-        assertThatThrownBy(result::block)
-            .isInstanceOf(TaskNotFoundException.class)
-            .hasMessageContaining("Task or observer not found");
+        assertThatThrownBy(result::block).isInstanceOf(TaskNotFoundException.class).hasMessageContaining("Task or observer not found");
     }
 
 }

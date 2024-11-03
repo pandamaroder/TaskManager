@@ -2,6 +2,7 @@ package com.example.taskmanager.repository;
 
 import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.model.User;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
@@ -17,6 +18,21 @@ public class UserRepositoryTest extends BaseTestConfig {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Test
+    public void testCreateUser() {
+
+        User user = prepareUser();
+        userRepository.save(user).block();
+
+
+        long count = getEntriesCount(mongoTemplate, USERS_COLLECTION);
+        assertThat(count)
+            .isNotZero()
+            .isPositive();
+        assertThat(count)
+            .isEqualTo(1);
+    }
 
     @Test
     public void testGetAllUsers() {
@@ -48,7 +64,7 @@ public class UserRepositoryTest extends BaseTestConfig {
         User user = prepareUser();
         userRepository.save(user).block();
 
-        Mono<User> foundUser = userRepository.findById(user.id());
+        Mono<User> foundUser = userRepository.findById(new ObjectId(user.id()));
 
         StepVerifier.create(foundUser)
             .assertNext(userFound -> {
@@ -76,7 +92,7 @@ public class UserRepositoryTest extends BaseTestConfig {
             .isNotZero()
             .isEqualTo(1);
 
-        Mono<Void> deletedUser = userRepository.deleteById(user.id());
+        Mono<Void> deletedUser = userRepository.deleteById(new ObjectId(user.id()));
 
         StepVerifier.create(deletedUser)
             .verifyComplete();
@@ -100,7 +116,7 @@ public class UserRepositoryTest extends BaseTestConfig {
             })
             .verifyComplete();
 
-        Mono<User> userFromDbase = userRepository.findById(user.id());
+        Mono<User> userFromDbase = userRepository.findById(new ObjectId(user.id()));
         User block = userFromDbase.block();
         assertThat(block)
             .isNotNull();

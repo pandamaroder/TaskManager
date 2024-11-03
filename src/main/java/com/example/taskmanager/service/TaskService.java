@@ -30,20 +30,29 @@ public class TaskService {
         return taskRepository.findAll();
     }
 
-    public Mono<Task> getTaskById(ObjectId id) {
+    public Mono<Task> createTask(Task task, String authorId) {
+        return userRepository.findById(new ObjectId(authorId))
+        .map(author -> Task.withAuthor(task, authorId, author))
+        .log()
+        .flatMap(taskRepository::save)
+        .log()
+        .switchIfEmpty(Mono.error(new UserNotFoundException("User not found, you can't create task")));
+    }
+
+    public Mono<Task> getTaskById(String id) {
         if (id == null) {
             return Mono.empty();
         }
-        return taskRepository.findById(id).flatMap(this::mapTaskWithRelations);
+        return taskRepository.findById(new ObjectId(id)).flatMap(this::mapTaskWithRelations);
     }
 
-    public Mono<Task> updateTask(ObjectId taskId, Task task) {
-        return taskRepository.findById(taskId).flatMap(existingTask -> {
+    public Mono<Task> updateTask(String taskId, Task task) {
+        return taskRepository.findById(new ObjectId(taskId)).flatMap(existingTask -> {
             Mono<User> authorMono = userService.findUserById(task.authorId())
                 .switchIfEmpty(Mono.error(new UserNotFoundException("Author not found")));
             Mono<User> assigneeMono = userService.findUserById(task.assigneeId())
                 .switchIfEmpty(Mono.defer(() -> {
-                    User newAssignee = new User(new ObjectId(), "Default Assignee", "default.assignee@test.com");
+                    User newAssignee = new User("", "Default Assignee", "default.assignee@test.com");
                     return userRepository.save(newAssignee);
                 }));
 
@@ -69,21 +78,21 @@ public class TaskService {
         }).switchIfEmpty(Mono.error(new TaskNotFoundException("Task not found")));
     }
 
-    public Mono<Void> deleteTask(ObjectId id) {
+    public Mono<Void> deleteTask(String id) {
         if (id == null) {
             return Mono.empty();
         }
-        return taskRepository.deleteById(id);
+        return taskRepository.deleteById(new ObjectId(id));
     }
 
-    public Mono<Task> addObserver(ObjectId taskId, ObjectId observerId) {
-        return taskRepository.findById(taskId)
+    public Mono<Task> addObserver(String taskId, String observerId) {
+        return taskRepository.findById(new ObjectId(taskId))
             .flatMap(task -> {
                 if (task == null) {
                     return Mono.error(new TaskNotFoundException("Task not found"));
                 }
 
-                return userRepository.findById(observerId)
+                return userRepository.findById(new ObjectId(observerId))
                     .flatMap(observer -> {
                         if (observer == null) {
                             return Mono.error(new TaskNotFoundException("Observer not found"));
@@ -121,7 +130,7 @@ public class TaskService {
 
         final Mono<User> assigneeMono = userService.findUserById(task.assigneeId())
             .switchIfEmpty(Mono.defer(() -> {
-                User newAssignee = new User(new ObjectId(), "Default Assignee", "default.assignee@test.com");
+                User newAssignee = new User("", "Default Assignee", "default.assignee@test.com");
                 return userRepository.save(newAssignee);
             }));
 

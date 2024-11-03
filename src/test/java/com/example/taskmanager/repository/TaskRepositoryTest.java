@@ -2,6 +2,8 @@ package com.example.taskmanager.repository;
 
 import com.example.taskmanager.BaseTestConfig;
 import com.example.taskmanager.model.Task;
+import com.example.taskmanager.model.User;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
@@ -13,12 +15,34 @@ import java.util.List;
 import static com.example.taskmanager.DataModelUtils.getEntriesCount;
 import static com.example.taskmanager.DataModelUtils.prepareDifferentTask;
 import static com.example.taskmanager.DataModelUtils.prepareTask;
+import static com.example.taskmanager.DataModelUtils.prepareUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskRepositoryTest extends BaseTestConfig {
 
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test
+    public void testCreateTask() {
+        final long countBefore = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
+        assertThat(countBefore).isZero();
+
+        Task createdTask = prepareTask();
+        Task savedTask = taskRepository.save(createdTask).block();
+
+        // Проверки
+        assertThat(savedTask).isNotNull();
+        assertThat(savedTask.id()).isNotNull().isEqualTo(createdTask.id());
+        assertThat(savedTask.name()).isEqualTo(createdTask.name());
+
+        // Проверка увеличения числа записей в коллекции
+        long countAfter = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
+        assertThat(countAfter - countBefore).isPositive().isEqualTo(1);
+    }
 
     @Test
     public void testGetAllTasks() {
@@ -47,7 +71,7 @@ public class TaskRepositoryTest extends BaseTestConfig {
         final long countBefore = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
         assertThat(countBefore).isNotZero().isEqualTo(1);
 
-        Mono<Void> deletedTask = taskRepository.deleteById(task.id());
+        Mono<Void> deletedTask = taskRepository.deleteById(new ObjectId(task.id()));
 
         StepVerifier.create(deletedTask).verifyComplete();
 
@@ -63,7 +87,7 @@ public class TaskRepositoryTest extends BaseTestConfig {
         final long countBefore = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
         assertThat(countBefore).isNotZero().isEqualTo(1);
 
-        Mono<Task> foundTask = taskRepository.findById(task.id());
+        Mono<Task> foundTask = taskRepository.findById(new ObjectId(task.id()));
 
         StepVerifier.create(foundTask)
             .assertNext(taskFound -> assertThat(taskFound.id()).isEqualTo(task.id()))
