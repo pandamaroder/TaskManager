@@ -84,23 +84,26 @@ public class TaskServiceTest extends BaseTestConfig {
     }
 
     @Test
-    public void testGetAllTasks() {
+    public void testGetAllTasksWithAuthors() {
         final long countBefore = getEntriesCount(mongoTemplate, TASKS_COLLECTION);
         assertThat(countBefore).isZero();
 
-        User user = new User("", "m", "m@test.ru");
+        User user = prepareUser();
         userRepository.save(user).block();
 
         Task testTask = prepareTask();
         final String userId = user.id();
-        Task taskWithAuthor = withAuthor(testTask, userId, user);
-        rut.save(taskWithAuthor).block();
+       // Task taskWithAuthor = withAuthor(testTask, userId, user);
+        //rut.save(taskWithAuthor).block();
+
+        Task taskWithAuthor = sut.createTask(testTask, userId).block();
+
 
         Flux<Task> allTasks = sut.getAllTasks();
         List<Task> block = allTasks.collectList().block();
         assertThat(block).hasSize(1);
+        assertThat(block).containsExactly(taskWithAuthor);
 
-        StepVerifier.create(allTasks).expectNextMatches(task -> task.name().equals("No update")).verifyComplete();
     }
 
     @Test
