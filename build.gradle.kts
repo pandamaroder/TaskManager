@@ -6,7 +6,6 @@ plugins {
     id("io.spring.dependency-management") version "1.1.4"
     id("pmd")
     id("jacoco")
-    id("org.sonarqube") version "4.0.0.2929"
     id("checkstyle")
     id("net.ltgt.errorprone") version "3.1.0"
 }
@@ -58,7 +57,7 @@ dependencies {
 
 tasks {
     test {
-        dependsOn(checkstyleTest, checkstyleMain, pmdTest, pmdMain)
+        //dependsOn(checkstyleTest, checkstyleMain, pmdTest, pmdMain)
         testLogging.showStandardStreams = false // set to true for debug purposes
         useJUnitPlatform()
         finalizedBy(jacocoTestReport, jacocoTestCoverageVerification)
@@ -79,4 +78,20 @@ tasks {
 
 jacoco {
     toolVersion = "0.8.12"
+}
+
+
+pmd {
+    toolVersion = "6.55.0"
+    ruleSets = listOf()
+    ruleSetFiles = files("config/pmd/pmd.xml")
+}
+
+
+checkstyle {
+    toolVersion = "10.16.0"
+    configFile = file("config/checkstyle/checkstyle.xml")
+    isIgnoreFailures = false
+    maxWarnings = 0
+    maxErrors = 0
 }

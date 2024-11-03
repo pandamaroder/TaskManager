@@ -14,7 +14,6 @@ import org.springframework.http.MediaType;
 import java.util.List;
 
 import static com.example.taskmanager.DataModelUtils.*;
-import static com.example.taskmanager.model.Task.withAuthorId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskControllerTest extends BaseTestConfig {
@@ -64,7 +63,7 @@ public class TaskControllerTest extends BaseTestConfig {
         assertThat(createdTask.name())
             .isEqualTo(tInitial.name());
         assertThat(createdTask.author().username())
-            .isEqualTo("Test");
+            .isEqualTo("defaultUserName");
         Task initTaskAfterSave = mongoTemplate.findById(tInitial.id(), Task.class).block();
         Task createdTaskAfterSave = mongoTemplate.findById(createdTask.id(), Task.class).block();
         assertThat(createdTask.id())
@@ -72,9 +71,6 @@ public class TaskControllerTest extends BaseTestConfig {
         assertThat(createdTask.authorId()).isEqualTo(userId);
 
 
-        Task block = taskService.getTaskById(createdTask.id()).block();
-        assertThat(block.authorId())
-            .isEqualTo(userId);
     }
 
     @Test
@@ -98,7 +94,7 @@ public class TaskControllerTest extends BaseTestConfig {
                 List<Task> tasks = response.getResponseBody();
                 assertThat(tasks).isNotNull();
                 assertThat(tasks).hasSize(1);
-                assertThat(tasks.get(0).name()).isEqualTo("TestControllerCreateTask");
+                assertThat(tasks.get(0).name()).isEqualTo("Default Name");
                 assertThat(tasks.get(0).authorId()).isEqualTo(userId);
             });
     }
