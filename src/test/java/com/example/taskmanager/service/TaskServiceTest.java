@@ -138,7 +138,7 @@ public class TaskServiceTest extends BaseTestConfig {
         User author = prepareDifferentUser();
         userRepository.save(author).block();
 
-        Task initialTask =  new Task(
+        Task initialTask = new Task(
             ObjectId.get().toHexString(),
             "TestTask2",
             "This is a test task2.",
