@@ -33,11 +33,11 @@ public class TaskService {
 
     public Mono<Task> createTask(Task task, String authorId) {
         return userRepository.findById(new ObjectId(authorId))
-        .map(author -> Task.withAuthor(task, authorId, author))
-        .log()
-        .flatMap(taskRepository::save)
-        .log()
-        .switchIfEmpty(Mono.error(new UserNotFoundException("User not found, you can't create task")));
+            .map(author -> Task.withAuthor(task, authorId, author))
+            .log()
+            .flatMap(taskRepository::save)
+            .log()
+            .switchIfEmpty(Mono.error(new UserNotFoundException("User not found, you can't create task")));
     }
 
     public Mono<Task> getTaskById(String id) {
@@ -92,17 +92,14 @@ public class TaskService {
                 if (task == null) {
                     return Mono.error(new TaskNotFoundException("Task not found"));
                 }
-
                 return userRepository.findById(new ObjectId(observerId))
                     .flatMap(observer -> {
                         if (observer == null) {
                             return Mono.error(new TaskNotFoundException("Observer not found"));
                         }
-
                         if (task.observerIds().contains(observerId)) {
                             return Mono.error(new IllegalArgumentException("Observer already added"));
                         }
-
                         var updatedTask = new Task(task.id(),
                             task.name(),
                             task.description(),
@@ -116,7 +113,6 @@ public class TaskService {
                             task.author(),
                             task.assignee(),
                             task.observers());
-
                         return taskRepository.save(updatedTask);
                     });
             })

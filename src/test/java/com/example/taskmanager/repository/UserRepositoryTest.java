@@ -25,7 +25,6 @@ public class UserRepositoryTest extends BaseTestConfig {
         User user = prepareUser();
         userRepository.save(user).block();
 
-
         long count = getEntriesCount(mongoTemplate, USERS_COLLECTION);
         assertThat(count).isNotZero().isPositive();
         assertThat(count).isEqualTo(1);

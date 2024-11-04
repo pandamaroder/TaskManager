@@ -57,7 +57,7 @@ dependencies {
 
 tasks {
     test {
-        //dependsOn(checkstyleTest, checkstyleMain, pmdTest, pmdMain)
+        dependsOn(checkstyleTest, checkstyleMain, pmdTest, pmdMain)
         testLogging.showStandardStreams = false // set to true for debug purposes
         useJUnitPlatform()
         finalizedBy(jacocoTestReport, jacocoTestCoverageVerification)

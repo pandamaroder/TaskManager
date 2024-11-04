@@ -30,7 +30,6 @@ public class TaskControllerTest extends BaseTestConfig {
     @Autowired
     private TaskRepository taskRepository;
 
-
     @Test
     public void testCreateTask() {
         User testUser = prepareUser();
@@ -67,12 +66,10 @@ public class TaskControllerTest extends BaseTestConfig {
             .isEqualTo(tInitial.name());
         assertThat(createdTask.author().username())
             .isEqualTo("defaultUserName");
-        Task initTaskAfterSave = mongoTemplate.findById(tInitial.id(), Task.class).block();
-        Task createdTaskAfterSave = mongoTemplate.findById(createdTask.id(), Task.class).block();
+
         assertThat(createdTask.id())
             .isEqualTo(tInitial.id());
         assertThat(createdTask.authorId()).isEqualTo(userId);
-
 
     }
 

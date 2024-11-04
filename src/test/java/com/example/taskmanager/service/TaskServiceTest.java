@@ -19,7 +19,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.example.taskmanager.DataModelUtils.*;
+import static com.example.taskmanager.DataModelUtils.getEntriesCount;
+import static com.example.taskmanager.DataModelUtils.prepareDifferentUser;
+import static com.example.taskmanager.DataModelUtils.prepareTask;
+import static com.example.taskmanager.DataModelUtils.prepareUser;
 import static com.example.taskmanager.model.Task.withAuthor;
 import static com.example.taskmanager.model.Task.withCreatorTaskId;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -134,6 +137,7 @@ public class TaskServiceTest extends BaseTestConfig {
         userRepository.save(observer).block();
         User author = prepareDifferentUser();
         userRepository.save(author).block();
+
         Task initialTask =  new Task(
             ObjectId.get().toHexString(),
             "TestTask2",
@@ -144,7 +148,6 @@ public class TaskServiceTest extends BaseTestConfig {
             author.id(),
             null,
             Stream.of(observer.id()).collect(Collectors.toSet()),
-
             null, // author
             null, // assignee
             new HashSet<>() // observers
